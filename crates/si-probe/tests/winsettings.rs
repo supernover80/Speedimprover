@@ -60,3 +60,33 @@ fn missing_library_folder_is_skipped() {
     let (games, _warnings) = discover_games_in(Some(&root), None);
     assert_eq!(games.len(), 1);
 }
+
+#[test]
+fn steam_library_spelling_wins_over_root_spelling() {
+    let base = std::env::temp_dir().join(format!("si-steam-spelling-{}", std::process::id()));
+    let root = base.join("Steam");
+    let apps = root.join("steamapps");
+    std::fs::create_dir_all(&apps).unwrap();
+    // The same folder spelled differently, as libraryfolders.vdf and the
+    // registry's SteamPath often disagree.
+    let alias = base.join("Steam").join("..").join("Steam");
+    let lib = alias.to_string_lossy().replace('\\', "\\\\");
+    std::fs::write(
+        apps.join("libraryfolders.vdf"),
+        format!("\"libraryfolders\" {{ \"0\" {{ \"path\" \"{lib}\" }} }}"),
+    )
+    .unwrap();
+    std::fs::write(
+        apps.join("appmanifest_730.acf"),
+        "\"AppState\" { \"appid\" \"730\" \"name\" \"Counter-Strike 2\" \"StateFlags\" \"4\" \"installdir\" \"cs2\" }",
+    )
+    .unwrap();
+    let (games, warnings) = discover_games_in(Some(&root), None);
+    assert!(warnings.is_empty(), "{warnings:?}");
+    assert_eq!(games.len(), 1);
+    assert!(
+        games[0].install_dir.starts_with(&*alias.to_string_lossy()),
+        "{}",
+        games[0].install_dir
+    );
+}

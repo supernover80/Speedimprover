@@ -136,8 +136,11 @@ pub fn discover_games_in(
             .map(|text| parse_steam_library_folders(&text))
             .unwrap_or_default();
         let root_str = root.to_string_lossy().into_owned();
+        // Steam's own folder is always a library. It goes last so the
+        // spelling in libraryfolders.vdf (the registry's SteamPath often uses
+        // `/` and lower case) wins when the same game is seen twice.
         if !libraries.iter().any(|l| Path::new(l) == root) {
-            libraries.insert(0, root_str);
+            libraries.push(root_str);
         }
         for library in libraries {
             let apps = Path::new(&library).join("steamapps");

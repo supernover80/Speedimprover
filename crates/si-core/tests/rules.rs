@@ -170,3 +170,20 @@ fn health_score_mixed() {
     s.os.hags = Some(false); // Low
     assert_eq!(health_score(&analyze(&s, &[])), 89);
 }
+
+#[test]
+fn games_on_hdd_accepts_forward_slashes() {
+    let mut s = fixtures::healthy_desktop();
+    s.disks.push(DiskInfo {
+        mount: "D:\\".into(),
+        media: DiskMedia::Hdd,
+        total_gb: 2000.0,
+        free_gb: 900.0,
+    });
+    let g = InstalledGame {
+        name: "Fortnite".into(),
+        install_dir: "D:/Epic Games/Fortnite".into(),
+        ..Default::default()
+    };
+    assert!(ids(&s, &[g]).contains(&"storage.games_on_hdd"));
+}

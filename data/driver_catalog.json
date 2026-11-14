@@ -18,6 +18,7 @@
       "vendor": "intel",
       "class": "Display",
       "latest_version": "32.0.101.9175",
+      "min_installed_version": "31.0.101.3000",
       "download_url": "https://www.intel.com/content/www/us/en/download-center/home.html"
     }
   ]

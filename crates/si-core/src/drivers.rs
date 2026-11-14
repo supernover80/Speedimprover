@@ -86,6 +86,11 @@ pub struct CatalogEntry {
     pub class: String,
     /// NVIDIA format (`621.24`) for NVIDIA, Windows format for AMD and Intel.
     pub latest_version: String,
+    /// Installed versions below this are on another driver branch this entry
+    /// does not cover (e.g. Intel's legacy 6th–10th gen iGPU driver).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min_installed_version: Option<String>,
+    /// Must be `https://`; other entries are dropped when parsing.
     pub download_url: String,
 }
 
@@ -97,8 +102,16 @@ pub struct DriverCatalog {
 }
 
 impl DriverCatalog {
+    /// Parses a catalog, dropping entries whose `download_url` is not
+    /// `https://` (the app opens that URL, and the catalog comes from the network).
     pub fn parse(json: &str) -> Result<Self, CoreError> {
-        Ok(serde_json::from_str(json)?)
+        let mut catalog: Self = serde_json::from_str(json)?;
+        catalog.entries.retain(|e| {
+            e.download_url
+                .get(..8)
+                .is_some_and(|scheme| scheme.eq_ignore_ascii_case("https://"))
+        });
+        Ok(catalog)
     }
 
     /// The catalog compiled into the binary (used when the online copy is unreachable).
@@ -244,6 +257,11 @@ fn catalog_status(d: &DriverInfo, catalog: &DriverCatalog) -> Option<DriverStatu
     } else {
         d.version.clone()
     };
+    if let Some(min) = &entry.min_installed_version {
+        if compare_versions(&installed, min)? == Ordering::Less {
+            return None;
+        }
+    }
     (compare_versions(&installed, &entry.latest_version)? == Ordering::Less).then(|| {
         DriverStatus::UpdateAvailable {
             source: UpdateSource::Catalog,

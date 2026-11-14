@@ -120,3 +120,42 @@ fn rows_filtered_and_sorted() {
 fn bundled_catalog_parses() {
     assert_eq!(DriverCatalog::bundled().schema, 1);
 }
+
+#[test]
+fn catalog_skips_drivers_older_than_its_branch() {
+    // Intel 6th–10th gen iGPUs stay on the legacy 31.0.101.2xxx branch and
+    // cannot install the current Arc/Xe driver.
+    let cat = DriverCatalog::parse(
+        r#"{"schema":1,"updated":"2026-11-01","entries":[{"vendor":"intel","class":"Display","latest_version":"32.0.101.9175","min_installed_version":"31.0.101.3000","download_url":"https://example.test/dl"}]}"#,
+    )
+    .unwrap();
+    let mut s = fixtures::struggling_laptop();
+    s.drivers[0].version = "31.0.101.2135".into();
+    s.drivers[0].date = Some("2026-06-01".into());
+    let rows = evaluate_drivers(&s, &cat, &[]);
+    assert_eq!(
+        status_of(&rows, "Intel(R) Iris(R) Xe Graphics"),
+        &DriverStatus::NoUpdateFound
+    );
+    s.drivers[0].version = "31.0.101.4502".into();
+    let rows = evaluate_drivers(&s, &cat, &[]);
+    assert!(matches!(
+        status_of(&rows, "Intel(R) Iris(R) Xe Graphics"),
+        DriverStatus::UpdateAvailable {
+            source: UpdateSource::Catalog,
+            ..
+        }
+    ));
+}
+
+#[test]
+fn catalog_drops_entries_without_https_download_url() {
+    let cat = DriverCatalog::parse(
+        r#"{"schema":1,"updated":"2026-11-01","entries":[
+            {"vendor":"nvidia","class":"Display","latest_version":"999.99","download_url":"file:///C:/evil.exe"},
+            {"vendor":"amd","class":"Display","latest_version":"32.0.1.1","download_url":"https://www.amd.com/x"}]}"#,
+    )
+    .unwrap();
+    assert_eq!(cat.entries.len(), 1);
+    assert_eq!(cat.entries[0].vendor, DriverVendor::Amd);
+}

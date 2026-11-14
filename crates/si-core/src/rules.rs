@@ -362,12 +362,18 @@ fn low_free(s: &SystemSnapshot) -> Option<Finding> {
     )
 }
 
-/// The disk whose mount point is the longest case-insensitive prefix of `path`.
+/// Lower-case with `\` separators, so `D:/Games` and `d:\games` compare equal.
+fn normalize_path(p: &str) -> String {
+    p.to_ascii_lowercase().replace('/', "\\")
+}
+
+/// The disk whose mount point is the longest prefix of `path` (case and
+/// separator insensitive).
 fn disk_for<'a>(disks: &'a [DiskInfo], path: &str) -> Option<&'a DiskInfo> {
-    let path = path.to_ascii_lowercase();
+    let path = normalize_path(path);
     disks
         .iter()
-        .filter(|d| !d.mount.is_empty() && path.starts_with(&d.mount.to_ascii_lowercase()))
+        .filter(|d| !d.mount.is_empty() && path.starts_with(&normalize_path(&d.mount)))
         .max_by_key(|d| d.mount.len())
 }
 
