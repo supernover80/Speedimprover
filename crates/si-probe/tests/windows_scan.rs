@@ -19,3 +19,9 @@ fn scan_survives_failing_collectors() {
 fn real_gpu_detected() {
     assert!(!si_probe::win::dxgi::enumerate_gpus().unwrap().is_empty());
 }
+#[test]
+fn windows_probe_full_scan() {
+    let r = si_probe::default_probe().scan(&mut |_| {});
+    assert!(r.snapshot.machine.os_build >= 19041);
+    assert_ne!(r.snapshot.os.power_plan, si_core::model::PowerPlan::Unknown);
+}

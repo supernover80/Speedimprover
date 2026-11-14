@@ -15,6 +15,7 @@ pub mod generic;
 pub mod mapping;
 #[cfg(windows)]
 pub mod win;
+pub mod winsettings;
 
 /// The stages of a scan, in the order they run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -108,5 +109,12 @@ pub type ProbeFactory = Box<dyn FnOnce() -> Box<dyn SystemProbe> + Send>;
 
 /// The best probe for this OS.
 pub fn default_probe() -> Box<dyn SystemProbe> {
-    Box::new(generic::GenericProbe::new())
+    #[cfg(windows)]
+    {
+        Box::new(win::WindowsProbe::new())
+    }
+    #[cfg(not(windows))]
+    {
+        Box::new(generic::GenericProbe::new())
+    }
 }
