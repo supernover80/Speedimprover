@@ -41,3 +41,40 @@ pub fn status_dot(ui: &mut Ui, color: Color32) {
     let (rect, _) = ui.allocate_exact_size(vec2(10.0, 10.0), Sense::hover());
     ui.painter().circle_filled(rect.center(), 4.0, color);
 }
+
+/// A small, non-clickable label on a filled background (e.g. `LOW TIER`),
+/// sized to its text.
+pub fn badge(ui: &mut Ui, text: &str, fill: Color32, fg: Color32) -> Response {
+    let font = egui::FontId::proportional(11.0);
+    let galley = ui.painter().layout_no_wrap(text.to_string(), font, fg);
+    let size = galley.size() + vec2(20.0, 8.0);
+    let (rect, response) = ui.allocate_exact_size(size, Sense::hover());
+    ui.painter()
+        .rect_filled(rect, CornerRadius::same(PILL_RADIUS), fill);
+    ui.painter()
+        .galley(rect.center() - galley.size() / 2.0, galley, fg);
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Label, true, text));
+    response
+}
+
+/// An on/off switch, exposed to assistive tech as a checkbox named `label`.
+pub fn toggle(ui: &mut Ui, p: &Palette, on: &mut bool, label: &str) -> Response {
+    let (rect, mut response) = ui.allocate_exact_size(vec2(40.0, 22.0), Sense::click());
+    if response.clicked() {
+        *on = !*on;
+        response.mark_changed();
+    }
+    let state = *on;
+    response
+        .widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, true, state, label));
+    let track = if state { p.accent_strong } else { p.border };
+    let painter = ui.painter();
+    painter.rect_filled(rect, CornerRadius::same(11), track);
+    let x = if state {
+        rect.right() - 11.0
+    } else {
+        rect.left() + 11.0
+    };
+    painter.circle_filled(egui::pos2(x, rect.center().y), 8.0, Color32::WHITE);
+    response
+}
