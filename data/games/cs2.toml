@@ -1,0 +1,113 @@
+# Counter-Strike 2 — recommended graphics settings per hardware tier (see spec §8).
+id = "cs2"
+name = "Counter-Strike 2"
+steam_appid = 730
+
+[[settings]]
+label = "Boost Player Contrast"
+impact = "low"
+low = "Enabled"
+mid = "Enabled"
+high = "Enabled"
+ultra = "Enabled"
+competitive = "Enabled"
+
+[[settings]]
+label = "Wait for Vertical Sync"
+impact = "low"
+low = "Disabled"
+mid = "Disabled"
+high = "Disabled"
+ultra = "Disabled"
+competitive = "Disabled"
+
+[[settings]]
+label = "Multisampling Anti-Aliasing Mode"
+impact = "medium"
+low = "None"
+mid = "2X MSAA"
+high = "4X MSAA"
+ultra = "8X MSAA"
+
+[[settings]]
+label = "Global Shadow Quality"
+impact = "high"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Very High"
+
+[[settings]]
+label = "Dynamic Shadows"
+impact = "medium"
+low = "Sun Only"
+mid = "Sun Only"
+high = "All"
+ultra = "All"
+
+[[settings]]
+label = "Model / Texture Detail"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Texture Filtering Mode"
+impact = "low"
+low = "Bilinear"
+mid = "Anisotropic 4X"
+high = "Anisotropic 8X"
+ultra = "Anisotropic 16X"
+
+[[settings]]
+label = "Shader Detail"
+impact = "medium"
+low = "Low"
+mid = "Low"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Particle Detail"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Very High"
+
+[[settings]]
+label = "Ambient Occlusion"
+impact = "medium"
+low = "Disabled"
+mid = "Disabled"
+high = "Medium"
+ultra = "High"
+
+[[settings]]
+label = "High Dynamic Range"
+impact = "low"
+low = "Performance"
+mid = "Performance"
+high = "Quality"
+ultra = "Quality"
+
+[[settings]]
+label = "FidelityFX Super Resolution"
+impact = "high"
+low = "Quality"
+mid = "Disabled (Highest Quality)"
+high = "Disabled (Highest Quality)"
+ultra = "Disabled (Highest Quality)"
+competitive = "Disabled (Highest Quality)"
+
+[[settings]]
+label = "NVIDIA Reflex Low Latency"
+impact = "low"
+low = "Enabled"
+mid = "Enabled"
+high = "Enabled"
+ultra = "Enabled"
+competitive = "Enabled + Boost"

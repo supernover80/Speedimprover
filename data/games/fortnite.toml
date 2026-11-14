@@ -1,0 +1,84 @@
+# Fortnite — recommended graphics settings per hardware tier (see spec §8).
+id = "fortnite"
+name = "Fortnite"
+epic_app_name = "Fortnite"
+
+[[settings]]
+label = "Rendering Mode"
+impact = "high"
+low = "Performance - Lower Graphical Fidelity"
+mid = "DirectX 12"
+high = "DirectX 12"
+ultra = "DirectX 12"
+competitive = "Performance - Lower Graphical Fidelity"
+
+[[settings]]
+label = "View Distance"
+impact = "medium"
+low = "Medium"
+mid = "Far"
+high = "Epic"
+ultra = "Epic"
+
+[[settings]]
+label = "Shadows"
+impact = "high"
+low = "Off"
+mid = "Off"
+high = "Medium"
+ultra = "High"
+competitive = "Off"
+
+[[settings]]
+label = "Global Illumination"
+impact = "high"
+low = "Off"
+mid = "Off"
+high = "Medium"
+ultra = "High"
+competitive = "Off"
+
+[[settings]]
+label = "Reflections"
+impact = "high"
+low = "Off"
+mid = "Off"
+high = "Medium"
+ultra = "High"
+competitive = "Off"
+
+[[settings]]
+label = "Textures"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Epic"
+
+[[settings]]
+label = "Effects"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Epic"
+competitive = "Low"
+
+[[settings]]
+label = "Post Processing"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Epic"
+competitive = "Low"
+
+[[settings]]
+label = "Nanite Virtualized Geometry"
+impact = "high"
+low = "Off"
+mid = "Off"
+high = "On"
+ultra = "On"
+competitive = "Off"

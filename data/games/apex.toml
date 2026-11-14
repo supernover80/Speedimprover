@@ -1,0 +1,81 @@
+# Apex Legends — recommended graphics settings per hardware tier (see spec §8).
+id = "apex"
+name = "Apex Legends"
+steam_appid = 1172470
+
+[[settings]]
+label = "V-Sync"
+impact = "low"
+low = "Disabled"
+mid = "Disabled"
+high = "Disabled"
+ultra = "Disabled"
+competitive = "Disabled"
+
+[[settings]]
+label = "Anti-aliasing"
+impact = "medium"
+low = "None"
+mid = "TSAA"
+high = "TSAA"
+ultra = "TSAA"
+
+[[settings]]
+label = "Texture Streaming Budget"
+impact = "medium"
+vram_sensitive = true
+low = "Low (2-3GB VRAM)"
+mid = "Medium (3GB VRAM)"
+high = "High (4GB VRAM)"
+ultra = "Very High (6GB VRAM)"
+
+[[settings]]
+label = "Ambient Occlusion Quality"
+impact = "high"
+low = "Disabled"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+competitive = "Disabled"
+
+[[settings]]
+label = "Sun Shadow Coverage"
+impact = "medium"
+low = "Low"
+mid = "Low"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Spot Shadow Detail"
+impact = "high"
+low = "Disabled"
+mid = "Low"
+high = "High"
+ultra = "Very High"
+
+[[settings]]
+label = "Volumetric Lighting"
+impact = "high"
+low = "Disabled"
+mid = "Disabled"
+high = "Enabled"
+ultra = "Enabled"
+competitive = "Disabled"
+
+[[settings]]
+label = "Model Detail"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Effects Detail"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "High"

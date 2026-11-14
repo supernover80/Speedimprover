@@ -1,0 +1,92 @@
+# PUBG: BATTLEGROUNDS — recommended graphics settings per hardware tier (see spec §8).
+id = "pubg"
+name = "PUBG: BATTLEGROUNDS"
+steam_appid = 578080
+
+[[settings]]
+label = "Render Scale"
+impact = "high"
+low = "90"
+mid = "100"
+high = "100"
+ultra = "100"
+competitive = "100"
+
+[[settings]]
+label = "Anti-Aliasing"
+impact = "medium"
+low = "Very Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Post-Processing"
+impact = "high"
+low = "Very Low"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+competitive = "Very Low"
+
+[[settings]]
+label = "Shadows"
+impact = "high"
+low = "Very Low"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+competitive = "Very Low"
+
+[[settings]]
+label = "Textures"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Effects"
+impact = "medium"
+low = "Very Low"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+competitive = "Very Low"
+
+[[settings]]
+label = "Foliage"
+impact = "medium"
+low = "Very Low"
+mid = "Very Low"
+high = "Low"
+ultra = "Medium"
+competitive = "Very Low"
+
+[[settings]]
+label = "View Distance"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Motion Blur"
+impact = "low"
+low = "Disabled"
+mid = "Disabled"
+high = "Disabled"
+ultra = "Disabled"
+competitive = "Disabled"
+
+[[settings]]
+label = "V-Sync"
+impact = "low"
+low = "Disabled"
+mid = "Disabled"
+high = "Disabled"
+ultra = "Disabled"
+competitive = "Disabled"

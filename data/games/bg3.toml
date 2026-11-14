@@ -1,0 +1,70 @@
+# Baldur's Gate 3 — recommended graphics settings per hardware tier (see spec §8).
+id = "bg3"
+name = "Baldur's Gate 3"
+steam_appid = 1086940
+
+[[settings]]
+label = "Model Quality"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Texture Quality"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Detail Distance"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Shadow Quality"
+impact = "high"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "Ultra"
+
+[[settings]]
+label = "Fog Quality"
+impact = "high"
+low = "Low"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+
+[[settings]]
+label = "Cloud Quality"
+impact = "medium"
+low = "Low"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+
+[[settings]]
+label = "Dynamic Crowds"
+impact = "high"
+low = "Off"
+mid = "Off"
+high = "On"
+ultra = "On"
+
+[[settings]]
+label = "Ambient Occlusion"
+impact = "medium"
+low = "Off"
+mid = "On"
+high = "On"
+ultra = "On"

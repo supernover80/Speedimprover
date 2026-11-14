@@ -1,0 +1,69 @@
+# Dota 2 — recommended graphics settings per hardware tier (see spec §8).
+id = "dota2"
+name = "Dota 2"
+steam_appid = 570
+
+[[settings]]
+label = "Render Quality"
+impact = "high"
+low = "70%"
+mid = "85%"
+high = "100%"
+ultra = "100%"
+
+[[settings]]
+label = "Texture Quality"
+impact = "medium"
+vram_sensitive = true
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Effects Quality"
+impact = "medium"
+low = "Low"
+mid = "Medium"
+high = "High"
+ultra = "High"
+
+[[settings]]
+label = "Shadow Quality"
+impact = "high"
+low = "Off"
+mid = "Low"
+high = "Medium"
+ultra = "High"
+
+[[settings]]
+label = "Ambient Occlusion"
+impact = "medium"
+low = "Off"
+mid = "Off"
+high = "On"
+ultra = "On"
+
+[[settings]]
+label = "World Lighting"
+impact = "medium"
+low = "Off"
+mid = "On"
+high = "On"
+ultra = "On"
+
+[[settings]]
+label = "Grass"
+impact = "low"
+low = "Off"
+mid = "Off"
+high = "On"
+ultra = "On"
+
+[[settings]]
+label = "High Quality Water"
+impact = "low"
+low = "Off"
+mid = "Off"
+high = "On"
+ultra = "On"
