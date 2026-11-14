@@ -9,6 +9,27 @@ rust-version.workspace = true
 si-core = { path = "../si-core" }
 sysinfo = "0.40.3"
 serde.workspace = true
+chrono.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+wmi = "0.18.4"
+winreg = "0.56.0"
+nvml-wrapper = "0.13.0"
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Dxgi",
+    "Win32_Graphics_Dxgi_Common",
+    "Win32_Graphics_Direct3D",
+    "Win32_Graphics_Direct3D12",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Performance",
+    "Win32_System_Power",
+    "Win32_System_Com",
+    "Win32_System_Ole",
+    "Win32_System_Variant",
+    "Win32_System_UpdateAgent",
+    "Win32_System_SystemServices",
+] }

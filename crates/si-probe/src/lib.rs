@@ -12,6 +12,9 @@ use si_core::model::{InstalledGame, SystemSnapshot};
 
 pub mod fixture;
 pub mod generic;
+pub mod mapping;
+#[cfg(windows)]
+pub mod win;
 
 /// The stages of a scan, in the order they run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
