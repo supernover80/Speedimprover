@@ -3,5 +3,7 @@
 
 pub mod findings;
 pub mod fixtures;
+pub mod frames;
+pub mod live;
 pub mod model;
 pub mod rules;
