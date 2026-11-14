@@ -25,3 +25,14 @@ fn windows_probe_full_scan() {
     assert!(r.snapshot.machine.os_build >= 19041);
     assert_ne!(r.snapshot.os.power_plan, si_core::model::PowerPlan::Unknown);
 }
+#[test]
+fn windows_sample_has_cpu_perf() {
+    let mut p = si_probe::default_probe();
+    p.sample();
+    std::thread::sleep(std::time::Duration::from_millis(1100));
+    let s = p.sample();
+    assert!(
+        s.cpu_perf_pct.is_some(),
+        "English PDH counter missing: {s:?}"
+    );
+}

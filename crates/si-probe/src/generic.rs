@@ -74,6 +74,19 @@ impl GenericProbe {
         }
     }
 
+    /// One process from the last refresh (used to name GPU-heavy processes).
+    pub fn process_usage(&self, pid: u32) -> Option<ProcessUsage> {
+        let sys = self.sys.as_ref()?;
+        let p = sys.process(sysinfo::Pid::from_u32(pid))?;
+        Some(ProcessUsage {
+            pid,
+            name: p.name().to_string_lossy().into_owned(),
+            cpu_pct: normalize_cpu(p.cpu_usage(), self.logical_cores()),
+            mem_mb: p.memory() / MB,
+            gpu_pct: None,
+        })
+    }
+
     fn logical_cores(&self) -> u32 {
         self.sys.as_ref().map_or(0, |s| s.cpus().len() as u32)
     }

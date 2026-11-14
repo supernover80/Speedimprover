@@ -12,6 +12,7 @@ use si_core::model::{InstalledGame, SystemSnapshot};
 
 pub mod fixture;
 pub mod generic;
+pub mod gpu_counters;
 pub mod mapping;
 #[cfg(windows)]
 pub mod win;
