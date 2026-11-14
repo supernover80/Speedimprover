@@ -9,3 +9,4 @@ pub mod frames;
 pub mod live;
 pub mod model;
 pub mod rules;
+pub mod tier;

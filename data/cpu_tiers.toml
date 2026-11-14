@@ -1,0 +1,6 @@
+# CPU tiers (spec §8). Same matching as gpu_tiers.toml; U-series (low-power
+# laptop) CPUs drop one tier.
+ultra = ["X3D", "i9-13", "i9-14", "Ultra 9", "Ryzen 9 7", "Ryzen 9 9"]
+high = ["i9-12", "i7-12", "i7-13", "i7-14", "Ultra 7", "Ryzen 7 7", "Ryzen 7 9", "Ryzen 9 5"]
+mid = ["i9-10", "i9-11", "i7-10", "i7-11", "i5-12", "i5-13", "i5-14", "Ultra 5", "Ryzen 5 7", "Ryzen 5 9", "Ryzen 7 5", "Ryzen 5 5"]
+low = []

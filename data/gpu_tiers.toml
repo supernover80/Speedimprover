@@ -1,0 +1,6 @@
+# GPU tiers (spec §8). Case-insensitive substring match after removing
+# (R)/(TM)/(C); the highest matching tier wins, then laptop GPUs drop one tier.
+ultra = ["RTX 5090", "RTX 5080", "RTX 5070 Ti", "RTX 4090", "RTX 4080", "RTX 4070 Ti", "RX 9070 XT", "RX 7900 XT"]
+high = ["RTX 5070", "RTX 5060 Ti", "RTX 4070", "RTX 3090", "RTX 3080", "RTX 3070", "RX 9070", "RX 9060 XT", "RX 7800 XT", "RX 7700 XT", "RX 6950 XT", "RX 6900 XT", "RX 6800", "Arc B580"]
+mid = ["RTX 5060", "RTX 4060", "RTX 3060", "RTX 2080", "RTX 2070", "GTX 1080 Ti", "RX 7600", "RX 6700 XT", "RX 6650 XT", "RX 6600", "RX 5700", "Arc A770", "Arc A750", "Arc B570"]
+low = ["RTX 3050", "RTX 2060", "GTX 1660", "GTX 1650", "GTX 1080", "GTX 1070", "GTX 1060", "RX 6500 XT", "RX 580", "RX 570", "Arc A380", "Radeon 780M", "Radeon 760M", "Radeon 890M", "Iris Xe", "UHD Graphics", "Vega"]
