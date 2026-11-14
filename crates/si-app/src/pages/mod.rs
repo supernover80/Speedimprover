@@ -11,9 +11,11 @@ pub fn show(ui: &mut egui::Ui, state: &mut AppState) {
     match state.page {
         Page::Dashboard => dashboard::show(ui, state),
         Page::Analyzer => analyzer::show(ui, state),
+        Page::Live => live::show(ui, state),
         Page::Settings => settings::show(ui, state),
         other => {
             ui.heading(other.title());
         }
     }
 }
+pub mod live;
