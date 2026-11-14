@@ -7,9 +7,11 @@
 //! and leaves its fields at their "unknown" defaults.
 
 use serde::{Deserialize, Serialize};
+use si_core::drivers::AvailableDriverUpdate;
 use si_core::live::LiveSample;
 use si_core::model::{InstalledGame, SystemSnapshot};
 
+pub mod catalog;
 pub mod fixture;
 pub mod generic;
 pub mod gpu_counters;
@@ -117,5 +119,18 @@ pub fn default_probe() -> Box<dyn SystemProbe> {
     #[cfg(not(windows))]
     {
         Box::new(generic::GenericProbe::new())
+    }
+}
+
+/// Driver updates Windows Update offers (slow: run off the UI thread).
+/// Always empty on non-Windows systems.
+pub fn search_windows_update_drivers() -> Result<Vec<AvailableDriverUpdate>, ProbeError> {
+    #[cfg(windows)]
+    {
+        win::wua::search_drivers()
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(Vec::new())
     }
 }

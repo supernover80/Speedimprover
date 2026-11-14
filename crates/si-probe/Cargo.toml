@@ -13,8 +13,11 @@ chrono.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+# TLS backend: SChannel on Windows, rustls elsewhere (see ledger pre-flight ruling).
+reqwest = { version = "0.13.5", default-features = false, features = ["blocking", "json"] }
 
 [target.'cfg(windows)'.dependencies]
+reqwest = { version = "0.13.5", default-features = false, features = ["native-tls"] }
 wmi = "0.18.4"
 winreg = "0.56.0"
 nvml-wrapper = "0.13.0"
@@ -33,3 +36,6 @@ windows = { version = "0.62.2", features = [
     "Win32_System_UpdateAgent",
     "Win32_System_SystemServices",
 ] }
+
+[target.'cfg(not(windows))'.dependencies]
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls"] }

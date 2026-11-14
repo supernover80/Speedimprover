@@ -17,6 +17,7 @@ pub mod pdh;
 pub mod power;
 pub mod registry;
 pub mod wmi;
+pub mod wua;
 
 /// Processes added to a live sample for their GPU use.
 const LIVE_TOP_GPU_PROCESSES: usize = 8;
