@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "updated": "2026-11-14",
+  "entries": [
+    {
+      "vendor": "nvidia",
+      "class": "Display",
+      "latest_version": "621.24",
+      "download_url": "https://www.nvidia.com/en-us/drivers/"
+    },
+    {
+      "vendor": "amd",
+      "class": "Display",
+      "latest_version": "32.0.32015.7029",
+      "download_url": "https://www.amd.com/en/support/download/drivers.html"
+    },
+    {
+      "vendor": "intel",
+      "class": "Display",
+      "latest_version": "32.0.101.9175",
+      "download_url": "https://www.intel.com/content/www/us/en/download-center/home.html"
+    }
+  ]
+}
