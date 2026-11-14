@@ -219,7 +219,7 @@ fn memory_pressure(s: &SystemSnapshot) -> Option<Finding> {
         .iter()
         .filter(|p| !is_ignored(&p.name))
         .collect();
-    biggest.sort_by(|a, b| b.mem_mb.cmp(&a.mem_mb));
+    biggest.sort_by_key(|p| std::cmp::Reverse(p.mem_mb));
     let names: Vec<&str> = biggest.iter().take(3).map(|p| p.name.as_str()).collect();
     let mut detail = format!(
         "{} of {} in use ({:.0} %).",
