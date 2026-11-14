@@ -1,0 +1,30 @@
+{
+  "taken_at_unix": 1793491200,
+  "machine": { "hostname": "DESKTOP-GAMER", "os_name": "Windows 11", "os_build": 26100, "is_laptop": false, "on_battery": false },
+  "cpu": { "name": "AMD Ryzen 7 7800X3D 8-Core Processor", "physical_cores": 8, "logical_cores": 16, "base_mhz": 4200 },
+  "gpus": [
+    { "name": "NVIDIA GeForce RTX 4070 SUPER", "vendor": "nvidia", "vram_mb": 12282, "is_integrated": false,
+      "driver_version": "32.0.15.6614", "driver_date": "2026-10-01" }
+  ],
+  "memory": {
+    "total_mb": 32768, "used_mb": 9000,
+    "modules": [
+      { "capacity_mb": 16384, "rated_mhz": 6000, "configured_mhz": 6000, "generation": "ddr5" },
+      { "capacity_mb": 16384, "rated_mhz": 6000, "configured_mhz": 6000, "generation": "ddr5" }
+    ]
+  },
+  "disks": [ { "mount": "C:\\", "media": "nvme", "total_gb": 931.5, "free_gb": 412.0 } ],
+  "displays": [ { "name": "\\\\.\\DISPLAY1", "width": 2560, "height": 1440, "current_hz": 165, "max_hz": 165 } ],
+  "os": { "game_mode": true, "background_recording": false, "hags": true, "memory_integrity": false,
+          "power_plan": "balanced", "startup_apps": 6 },
+  "processes": [
+    { "pid": 1200, "name": "steam.exe", "cpu_pct": 1.2, "mem_mb": 350, "gpu_pct": null },
+    { "pid": 4500, "name": "chrome.exe", "cpu_pct": 3.0, "mem_mb": 900, "gpu_pct": null }
+  ],
+  "drivers": [
+    { "device_name": "NVIDIA GeForce RTX 4070 SUPER", "class": "Display", "manufacturer": "NVIDIA",
+      "version": "32.0.15.6614", "date": "2026-10-01", "hardware_ids": ["PCI\\VEN_10DE&DEV_2783"] },
+    { "device_name": "Realtek PCIe 2.5GbE Family Controller", "class": "Net", "manufacturer": "Realtek",
+      "version": "10.68.815.2023", "date": "2026-08-15", "hardware_ids": ["PCI\\VEN_10EC&DEV_8125"] }
+  ]
+}
