@@ -1,0 +1,141 @@
+{
+  "snapshot": {
+    "taken_at_unix": 1793491200,
+    "machine": {
+      "hostname": "LAPTOP-STUDENT",
+      "os_name": "Windows 11",
+      "os_build": 22631,
+      "is_laptop": true,
+      "on_battery": true
+    },
+    "cpu": {
+      "name": "12th Gen Intel(R) Core(TM) i5-1235U",
+      "physical_cores": 10,
+      "logical_cores": 12,
+      "base_mhz": 1300
+    },
+    "gpus": [
+      {
+        "name": "Intel(R) Iris(R) Xe Graphics",
+        "vendor": "intel",
+        "vram_mb": 128,
+        "is_integrated": true,
+        "driver_version": "31.0.101.4502",
+        "driver_date": "2024-06-01"
+      }
+    ],
+    "memory": {
+      "total_mb": 7900,
+      "used_mb": 7000,
+      "modules": [
+        {
+          "capacity_mb": 8192,
+          "rated_mhz": 3200,
+          "configured_mhz": 2666,
+          "generation": "ddr4"
+        }
+      ]
+    },
+    "disks": [
+      {
+        "mount": "C:\\",
+        "media": "ssd",
+        "total_gb": 237.0,
+        "free_gb": 9.5
+      }
+    ],
+    "displays": [
+      {
+        "name": "\\\\.\\DISPLAY1",
+        "width": 1920,
+        "height": 1080,
+        "current_hz": 60,
+        "max_hz": 144
+      }
+    ],
+    "os": {
+      "game_mode": false,
+      "background_recording": true,
+      "hags": null,
+      "memory_integrity": true,
+      "power_plan": "power_saver",
+      "startup_apps": 22
+    },
+    "processes": [
+      {
+        "pid": 7100,
+        "name": "chrome.exe",
+        "cpu_pct": 18.5,
+        "mem_mb": 2200,
+        "gpu_pct": null
+      },
+      {
+        "pid": 8800,
+        "name": "OneDrive.exe",
+        "cpu_pct": 11.0,
+        "mem_mb": 300,
+        "gpu_pct": null
+      },
+      {
+        "pid": 900,
+        "name": "dwm.exe",
+        "cpu_pct": 25.0,
+        "mem_mb": 150,
+        "gpu_pct": null
+      },
+      {
+        "pid": 3000,
+        "name": "Teams.exe",
+        "cpu_pct": 4.0,
+        "mem_mb": 1600,
+        "gpu_pct": null
+      }
+    ],
+    "drivers": [
+      {
+        "device_name": "Intel(R) Iris(R) Xe Graphics",
+        "class": "Display",
+        "manufacturer": "Intel Corporation",
+        "version": "31.0.101.4502",
+        "date": "2024-06-01",
+        "hardware_ids": [
+          "PCI\\VEN_8086&DEV_46A8"
+        ]
+      },
+      {
+        "device_name": "Intel(R) Wi-Fi 6 AX201 160MHz",
+        "class": "Net",
+        "manufacturer": "Intel Corporation",
+        "version": "22.200.0.6",
+        "date": "2023-03-01",
+        "hardware_ids": [
+          "PCI\\VEN_8086&DEV_A0F0"
+        ]
+      }
+    ]
+  },
+  "games": [
+    {
+      "store": "steam",
+      "id": "730",
+      "name": "Counter-Strike 2",
+      "install_dir": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive",
+      "size_bytes": null
+    },
+    {
+      "store": "steam",
+      "id": "1091500",
+      "name": "Cyberpunk 2077",
+      "install_dir": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Cyberpunk 2077",
+      "size_bytes": null
+    },
+    {
+      "store": "epic",
+      "id": "Fortnite",
+      "name": "Fortnite",
+      "install_dir": "C:\\Program Files\\Epic Games\\Fortnite",
+      "size_bytes": null
+    }
+  ],
+  "warnings": []
+}

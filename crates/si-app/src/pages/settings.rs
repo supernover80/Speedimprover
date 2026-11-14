@@ -1,0 +1,64 @@
+//! Settings: theme, PresentMon path, driver catalog URL, rescan.
+
+use std::path::PathBuf;
+
+use egui::RichText;
+
+use crate::settings::DEFAULT_CATALOG_URL;
+use crate::state::{AppState, UiEffect};
+use crate::theme::ThemeChoice;
+
+const PRESENTMON_RELEASES: &str = "https://github.com/GameTechDev/PresentMon/releases";
+
+pub fn show(ui: &mut egui::Ui, state: &mut AppState) {
+    ui.label(RichText::new("Preferences").size(22.0).strong());
+    ui.add_space(16.0);
+
+    let mut dark = state.settings.theme == ThemeChoice::Dark;
+    if ui.checkbox(&mut dark, "Dark theme").changed() {
+        state.set_theme(if dark {
+            ThemeChoice::Dark
+        } else {
+            ThemeChoice::Light
+        });
+    }
+    ui.add_space(16.0);
+
+    ui.label(RichText::new("PresentMon path").strong());
+    ui.label(
+        RichText::new("Used to measure real FPS. Requires administrator rights.")
+            .color(state.palette.text_muted),
+    );
+    let mut path = state
+        .settings
+        .presentmon_path
+        .as_ref()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    if ui.text_edit_singleline(&mut path).changed() {
+        let trimmed = path.trim();
+        state.settings.presentmon_path = (!trimmed.is_empty()).then(|| PathBuf::from(trimmed));
+        state.effects.push(UiEffect::SaveSettings);
+    }
+    ui.hyperlink_to("Download PresentMon", PRESENTMON_RELEASES);
+    ui.add_space(16.0);
+
+    ui.label(RichText::new("Driver catalog URL").strong());
+    ui.horizontal(|ui| {
+        if ui
+            .text_edit_singleline(&mut state.settings.catalog_url)
+            .changed()
+        {
+            state.effects.push(UiEffect::SaveSettings);
+        }
+        if ui.button("Reset").clicked() {
+            state.settings.catalog_url = DEFAULT_CATALOG_URL.to_string();
+            state.effects.push(UiEffect::SaveSettings);
+        }
+    });
+    ui.add_space(24.0);
+
+    if ui.button("Rescan now").clicked() {
+        state.request_scan();
+    }
+}

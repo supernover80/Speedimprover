@@ -1,0 +1,35 @@
+[package]
+name = "si-app"
+description = "SpeedImprover desktop app (eframe/egui)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "si_app"
+path = "src/lib.rs"
+
+[[bin]]
+name = "speedimprover"
+path = "src/main.rs"
+
+[dependencies]
+si-core = { path = "../si-core" }
+si-probe = { path = "../si-probe" }
+eframe = "0.36"
+egui = "0.36"
+egui_plot = "0.37"
+egui-phosphor = "0.14.0"
+crossbeam-channel = "0.5.17"
+open = "5.4.5"
+directories = "6.0.0"
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+chrono = { workspace = true, features = ["clock"] }
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber = "0.3.23"
+
+[dev-dependencies]
+egui_kittest = "0.36"
