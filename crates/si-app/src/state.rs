@@ -222,10 +222,14 @@ impl AppState {
 
     /// Windows Update IDs of every driver that can be installed with one click.
     pub fn installable_updates(&self) -> Vec<String> {
-        self.drivers
-            .iter()
-            .filter_map(|r| r.install_id.clone())
-            .collect()
+        let mut ids: Vec<String> = Vec::new();
+        // One Windows Update offer can cover several devices.
+        for id in self.drivers.iter().filter_map(|r| r.install_id.as_ref()) {
+            if !ids.contains(id) {
+                ids.push(id.clone());
+            }
+        }
+        ids
     }
 
     /// What limits FPS right now, with the evidence.

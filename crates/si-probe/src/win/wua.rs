@@ -85,6 +85,7 @@ fn install(update_ids: &[String]) -> windows::core::Result<InstallReport> {
         let selected: IUpdateCollection =
             CoCreateInstance(&UpdateCollection, None, CLSCTX_INPROC_SERVER)?;
         let mut titles = Vec::new();
+        let mut found = 0;
         for index in 0..offered.Count()? {
             let update = offered.get_Item(index)?;
             let id = update.Identity()?.UpdateID()?.to_string();
@@ -94,16 +95,20 @@ fn install(update_ids: &[String]) -> windows::core::Result<InstallReport> {
             {
                 continue;
             }
+            found += 1;
             if !update.EulaAccepted()?.as_bool() {
                 update.AcceptEula()?;
             }
             selected.Add(&update)?;
             titles.push(update.Title()?.to_string());
         }
-        if titles.is_empty() {
+        // Requested updates Windows Update no longer offers count as failed.
+        for _ in found..update_ids.len() {
             report
                 .failed
-                .push("The selected updates are no longer offered by Windows Update".into());
+                .push("An update is no longer offered by Windows Update".into());
+        }
+        if titles.is_empty() {
             return Ok(report);
         }
 

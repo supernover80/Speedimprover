@@ -130,3 +130,15 @@ fn warns_when_no_restore_point_was_created() {
     st.apply_event(WorkerEvent::DriversInstalled(report(true)));
     assert!(!has_warning(&st));
 }
+#[test]
+fn installable_updates_are_unique() {
+    let mut st = windows_update_state();
+    let row = st
+        .drivers
+        .iter()
+        .find(|r| r.install_id.is_some())
+        .cloned()
+        .unwrap();
+    st.drivers.push(row);
+    assert_eq!(st.installable_updates(), vec![ID.to_string()]);
+}
