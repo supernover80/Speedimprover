@@ -6,6 +6,7 @@ use crate::state::AppState;
 pub mod analyzer;
 pub mod dashboard;
 pub mod drivers;
+pub mod games;
 pub mod live;
 pub mod settings;
 
@@ -16,8 +17,6 @@ pub fn show(ui: &mut egui::Ui, state: &mut AppState) {
         Page::Live => live::show(ui, state),
         Page::Drivers => drivers::show(ui, state),
         Page::Settings => settings::show(ui, state),
-        Page::Games => {
-            ui.heading(Page::Games.title());
-        }
+        Page::Games => games::show(ui, state),
     }
 }
