@@ -21,6 +21,11 @@ use crate::worker::{WorkerCommand, WorkerEvent};
 /// Live samples kept for the charts (two minutes).
 pub const LIVE_HISTORY: usize = 120;
 
+/// Shown after an install when Windows did not create a restore point
+/// (usually because System Protection is off for the system drive).
+pub const NO_RESTORE_POINT_TEXT: &str =
+    "No System Restore point was created (System Protection may be off)";
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum UiEffect {
     Send(WorkerCommand),
@@ -148,6 +153,10 @@ impl AppState {
                         ToastKind::Success,
                         self.now,
                     );
+                }
+                if !report.installed.is_empty() && !report.restore_point_created {
+                    self.toasts
+                        .push(NO_RESTORE_POINT_TEXT, ToastKind::Info, self.now);
                 }
                 if !report.failed.is_empty() {
                     self.toasts.push(

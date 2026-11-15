@@ -2,27 +2,33 @@
 
 A Windows app, written in Rust, that scans your PC and tells you what is costing you FPS:
 
-- **FPS Killers** — 17 checks (monitor running below its refresh rate, power-saver plan, RAM below its rated speed or in single-channel, Game Mode off, background recording, full disk, apps hogging CPU/RAM, old graphics driver, …), each with a plain-English explanation and a **Fix** button that opens the right Windows Settings page. A 0–100 health score sums them up.
-- **Live Monitor** — CPU, GPU, RAM and VRAM load every second, the processes using them, and a verdict on what limits FPS right now (GPU-bound, CPU-bound, VRAM full, thermal throttling, frame-capped). With [PresentMon](https://github.com/GameTechDev/PresentMon/releases) it also measures real FPS and 1 % lows.
-- **Drivers** — graphics, chipset, network, audio, storage and Bluetooth drivers, checked against Windows Update, a version catalog and their age.
+- **Overview** — a health score, the current bottleneck, CPU and GPU load with their temperatures, your system's details and the state of your drivers on one page.
+- **Issues** — 17 checks (monitor running below its refresh rate, power-saver plan, RAM below its rated speed or in single-channel, Game Mode off, background recording, full disk, apps hogging CPU/RAM, old graphics driver, …), each with a plain-English explanation and a **Fix** button that opens the right Windows Settings page. A 0–100 health score sums them up.
+- **Performance** — exactly what is limiting your frame rate (GPU, CPU, video memory, system memory, thermal throttling or the refresh-rate cap), the measurements that prove it and what to do about it. CPU, GPU, RAM and VRAM load every second, CPU and GPU temperatures, and the processes using them. With [PresentMon](https://github.com/GameTechDev/PresentMon/releases) it also measures real FPS and 1 % lows, and the bottleneck is measured frame by frame.
+- **Drivers** — graphics, chipset, network, audio, storage and Bluetooth drivers, checked against Windows Update, a version catalog and their age. Updates offered by Windows Update install with one click (after a System Restore point).
 - **Games** — finds your Steam and Epic games and recommends in-game settings for your hardware and goal (Competitive, Balanced or Quality).
 
-SpeedImprover only **reads** your system. It never changes settings, edits the registry, installs drivers or touches game files — fixes open Windows Settings or the vendor's download page, and you make the change.
+SpeedImprover changes nothing on its own. Settings fixes open the right Windows Settings page and you make the change. The one thing it can change is drivers, and only when you click **Install** and approve Windows' administrator prompt — see [Installing driver updates](#installing-driver-updates). It never edits the registry or touches game files.
 
-![Dashboard](docs/screenshots/dashboard.png)
+The interface follows Windows' light or dark mode (change it under **Settings → Theme**).
 
-| FPS Analyzer | Live Monitor |
+![Overview](docs/screenshots/overview.png)
+
+| Performance | Issues |
 |---|---|
-| ![FPS Analyzer](docs/screenshots/analyzer.png) | ![Live Monitor](docs/screenshots/live.png) |
+| ![Performance](docs/screenshots/performance.png) | ![Issues](docs/screenshots/issues.png) |
 | **Drivers** | **Games** |
 | ![Drivers](docs/screenshots/drivers.png) | ![Games](docs/screenshots/games.png) |
+
+![Overview in light mode](docs/screenshots/overview-light.png)
 
 *(Screenshots show the built-in demo data, not a real PC.)*
 
 ## Requirements
 
 - Windows 10 22H2 or later, or Windows 11 (64-bit).
-- No administrator rights needed, except for real-FPS capture with PresentMon.
+- No administrator rights needed to run it. Windows asks for administrator permission only when you install a driver update, and real-FPS capture with PresentMon needs it too.
+- Optional: [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases) for exact CPU temperatures (see [Temperatures](#temperatures)).
 - No installer and no background service: it is a single `.exe`.
 
 ## Download and run
@@ -31,7 +37,7 @@ SpeedImprover only **reads** your system. It never changes settings, edits the r
 2. Right-click the zip and choose **Extract All…**, then pick a folder to keep it in (for example `Documents\SpeedImprover`).
 3. Open that folder and double-click **`speedimprover.exe`**.
 4. The first time, Windows may show **"Windows protected your PC"** (SmartScreen), because the app is not code-signed. Click **More info**, then **Run anyway**.
-5. The app opens on the Dashboard and starts scanning straight away. The scan takes a few seconds; the driver check (Windows Update) can take up to a minute and finishes in the background.
+5. The app opens on the **Overview** and starts scanning straight away. The scan takes a few seconds; the driver check (Windows Update) can take up to a minute and finishes in the background.
 
 Tips:
 
@@ -84,12 +90,50 @@ cargo test --workspace
 
 Windows-only tests (real WMI, registry and performance counters) run on Windows. Two need a real gaming PC or network and are skipped by default; run them with `cargo test -p si-probe -- --ignored`.
 
+## What is limiting your FPS
+
+Open **Performance**. The **Bottleneck analysis** card gives one verdict — for example *The GPU is the bottleneck* — then the evidence behind it (each measurement with a bar; the ones that decided the verdict are highlighted) and what to do about it. The line under the verdict says how it was worked out:
+
+- **Measured from N frames** — while PresentMon is measuring a game (see below). For every frame PresentMon reports how long the CPU and the GPU were busy. Whichever was busy for at least 90 % of the frame time is the limit. If the frame rate sits on your monitor's refresh rate, the cap is the limit instead.
+- **Estimated from N seconds of system load** — otherwise. The verdict comes from the last ten seconds of GPU load, the busiest CPU thread, CPU clock speed, memory use and temperatures. Start a PresentMon measurement for an exact, per-frame answer.
+
+Either way, full video or system memory, thermal throttling and a CPU running well below its base clock are reported first, because they are the root cause when present.
+
 ## Measuring real FPS
 
 1. Download `PresentMon` (2.x, the console `.exe`) from its [releases page](https://github.com/GameTechDev/PresentMon/releases).
 2. In SpeedImprover open **Settings** and paste the path to the `.exe` into **PresentMon path**.
 3. Run SpeedImprover **as administrator** (or add your account to the *Performance Log Users* group).
-4. Start your game, open **Live Monitor**, pick the game process and press **Measure FPS**.
+4. Start your game, open **Performance**, pick the game process under **Real FPS** and press **Measure FPS**. The bottleneck analysis switches to per-frame measurement after about 30 frames.
+
+## Temperatures
+
+The Overview and Performance pages show the CPU and GPU temperature, updated every second.
+
+- **GPU** — read from the NVIDIA driver on NVIDIA cards, otherwise from LibreHardwareMonitor if it is running, otherwise from the graphics driver itself (most current AMD and Intel drivers report it).
+- **CPU** — Windows has no standard way to read the CPU's own sensor. For an exact reading, run **LibreHardwareMonitor** in the background:
+  1. Download it from its [releases page](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases), extract it and run `LibreHardwareMonitor.exe` **as administrator**.
+  2. Leave it running (its **Options** menu can start it minimized with Windows). SpeedImprover picks up its sensors within 30 seconds. OpenHardwareMonitor works too.
+
+  Without it, SpeedImprover uses the motherboard's ACPI thermal zone and shows the value as **(approx.)**: it is often a motherboard sensor rather than the CPU cores, and some PCs do not report one at all (shown as **—**).
+
+## Installing driver updates
+
+On **Drivers**, each driver's button shows what is available:
+
+- **Install** — Windows Update offers a newer driver. Click it, or **Install all (N)** at the top (also on the Overview), to install it from inside SpeedImprover.
+- **Download** — the vendor has a newer driver that Windows Update does not offer yet. It opens the vendor's download page.
+- **Check** — the driver is over a year old but no update was found. It opens Windows Update's *Optional updates* page.
+
+What happens when you install:
+
+1. SpeedImprover lists what it will install and asks you to confirm.
+2. Windows asks for administrator permission (the usual blue/yellow prompt). Choosing **No** cancels; nothing is changed.
+3. A **System Restore point** is created first, so you can roll back from *Control Panel → Recovery → Open System Restore* if a driver causes problems. If System Protection is turned off for drive C:, Windows cannot create one; the install still runs and SpeedImprover tells you.
+4. Windows Update downloads and installs the drivers — the same packages Windows would install itself. SpeedImprover then checks your drivers again.
+5. If a driver needs a restart, a banner asks you to restart your PC.
+
+Only drivers from Windows Update are installed. SpeedImprover never downloads installers from other websites.
 
 ## Keeping data up to date
 
@@ -120,7 +164,7 @@ Windows-only tests (real WMI, registry and performance counters) run on Windows.
 No telemetry. SpeedImprover contacts only:
 
 - the driver catalog URL (this repository on GitHub, changeable in Settings), with a generic `SpeedImprover/<version>` user agent;
-- Windows Update, through Windows' own Update Agent, to list optional driver updates.
+- Windows Update, through Windows' own Update Agent, to list optional driver updates and — when you click **Install** — to download and install them.
 
 Everything else stays on your PC, under `%APPDATA%\SpeedImprover\SpeedImprover\`: `config\settings.toml`, and in `data\` the last scan (`last_scan.json`) and the log (`speedimprover.log`).
 
@@ -128,8 +172,8 @@ Everything else stays on your PC, under `%APPDATA%\SpeedImprover\SpeedImprover\`
 
 | Path | What's there |
 |---|---|
-| `crates/si-core` | Pure logic: data model, FPS rules, bottleneck classifier, driver status, hardware tiers, game recommendations. Builds and tests on any OS. |
-| `crates/si-probe` | Data collection: `sysinfo` everywhere; WMI, registry, DXGI, PDH, NVML, Windows Update and PresentMon on Windows. |
+| `crates/si-core` | Pure logic: data model, FPS rules, bottleneck analysis, frame-time parsing, driver status, hardware tiers, game recommendations. Builds and tests on any OS. |
+| `crates/si-probe` | Data collection: `sysinfo` everywhere; WMI, registry, DXGI, PDH, NVML, D3DKMT and LibreHardwareMonitor (temperatures), Windows Update (search and install), System Restore and PresentMon on Windows. |
 | `crates/si-app` | The eframe/egui app. |
 | `data/` | Driver catalog, tier tables, game profiles. |
 | `docs/superpowers/` | Design spec and implementation plan. |
@@ -142,9 +186,12 @@ Run through this on at least one desktop with a graphics card and one laptop:
 - Setting the monitor to 60 Hz shows *Monitor running below its max refresh rate*; setting it back clears it after **Rescan**.
 - Turning Game Mode off shows the finding, and **Fix** opens the Game Mode page.
 - On battery, a laptop shows *Laptop is running on battery*; a laptop with two GPUs is rated by the discrete one.
-- While a game runs, Live Monitor shows GPU % (and temperature on NVIDIA). The verdict changes between GPU-bound (uncapped, max settings) and frame-capped (60 FPS cap).
-- With PresentMon set up and running as administrator, **Measure FPS** matches the in-game counter within ±5 %.
-- **Check for updates** finishes; **Update** opens the vendor's page.
+- While a game runs, Performance shows GPU % and the GPU temperature. The verdict changes between *The GPU is the bottleneck* (uncapped, max settings) and the refresh-rate cap (FPS capped at the monitor's rate).
+- The CPU temperature shows **(approx.)** or **—** without LibreHardwareMonitor, and an exact value within 30 seconds of starting it.
+- With PresentMon set up and running as administrator, **Measure FPS** matches the in-game counter within ±5 %, and the analysis says *Measured from N frames*.
+- **Check for updates** finishes; **Download** opens the vendor's page.
+- On a PC with a Windows Update driver offer: **Install** shows the confirmation, the administrator prompt, then installs; a restore point appears in System Restore, the driver list refreshes and the restart banner appears when needed. Choosing **No** at the administrator prompt shows *Installation cancelled*.
+- Light and dark mode follow Windows when the theme is **System**.
 - The Games page lists Steam and Epic games, and recommendations change with the goal.
 - On a non-English Windows install, the CPU performance and GPU readings still appear.
 

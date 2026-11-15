@@ -110,3 +110,23 @@ fn install_failure_clears_state() {
     let h = harness(st);
     h.get_by_label("Restart your PC to finish installing drivers.");
 }
+#[test]
+fn warns_when_no_restore_point_was_created() {
+    let has_warning = |st: &AppState| {
+        st.toasts
+            .visible(st.now)
+            .iter()
+            .any(|t| t.text == si_app::state::NO_RESTORE_POINT_TEXT)
+    };
+    let report = |restore_point_created| si_probe::install::InstallReport {
+        installed: vec!["Intel Graphics".into()],
+        restore_point_created,
+        ..Default::default()
+    };
+    let mut st = windows_update_state();
+    st.apply_event(WorkerEvent::DriversInstalled(report(false)));
+    assert!(has_warning(&st));
+    let mut st = windows_update_state();
+    st.apply_event(WorkerEvent::DriversInstalled(report(true)));
+    assert!(!has_warning(&st));
+}
