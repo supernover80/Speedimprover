@@ -5,18 +5,18 @@ use egui::{
     Ui, WidgetInfo, WidgetType, vec2,
 };
 use egui_phosphor::regular as icons;
-use si_core::drivers::DriverStatus;
 use si_core::findings::Severity;
 use si_core::model::{DiskMedia, Store};
 
 use crate::nav::Page;
+use crate::pages::drivers::status_pill;
 use crate::state::AppState;
 use crate::theme::{GAP, Palette, ThemeChoice};
 use crate::widgets::card::{card, gradient_card};
 use crate::widgets::chart::line_chart;
 use crate::widgets::donut::donut;
-use crate::widgets::format::{driver_status_label, format_mb, severity_color, tier_badge};
-use crate::widgets::pill::{PillKind, badge, pill, status_dot, toggle};
+use crate::widgets::format::{format_mb, severity_color, tier_badge};
+use crate::widgets::pill::{badge, status_dot, toggle};
 
 const MAX_DRIVER_ROWS: usize = 7;
 const MAX_FAVORITES: usize = 4;
@@ -27,7 +27,6 @@ const NARROW_TILES_PER_ROW: usize = 3;
 const NARROW_COLUMN: f32 = 460.0;
 const RING_SIZE: f32 = 96.0;
 const LIVE_CHART_SECONDS: usize = 60;
-const OPTIONAL_UPDATES_URI: &str = "ms-settings:windowsupdate-optionalupdates";
 const SCROLLBAR_ROOM: f32 = 14.0;
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
@@ -249,19 +248,8 @@ fn drivers_card(ui: &mut Ui, state: &mut AppState) {
                 ui.label(RichText::new(icons::FILE_TEXT).size(20.0).color(p.accent));
                 let status = &row.status;
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    let kind = match status {
-                        DriverStatus::UpdateAvailable { .. } => PillKind::Primary,
-                        DriverStatus::PossiblyOutdated { .. } => PillKind::Warning,
-                        DriverStatus::NoUpdateFound => PillKind::Muted,
-                    };
-                    if pill(ui, &p, driver_status_label(status), kind).clicked() {
-                        open_url = match status {
-                            DriverStatus::UpdateAvailable { url, .. } => Some(url.clone()),
-                            DriverStatus::PossiblyOutdated { .. } => {
-                                Some(OPTIONAL_UPDATES_URI.to_string())
-                            }
-                            DriverStatus::NoUpdateFound => None,
-                        };
+                    if let Some(url) = status_pill(ui, &p, status) {
+                        open_url = Some(url);
                     }
                     ui.with_layout(Layout::top_down(Align::Min), |ui| {
                         truncated(ui, RichText::new(&row.driver.device_name).strong());
