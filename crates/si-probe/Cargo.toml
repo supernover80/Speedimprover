@@ -22,6 +22,7 @@ wmi = "0.18.4"
 winreg = "0.56.0"
 nvml-wrapper = "0.13.0"
 windows = { version = "0.62.2", features = [
+    "Wdk_Graphics_Direct3D",
     "Win32_Foundation",
     "Win32_Graphics_Dxgi",
     "Win32_Graphics_Dxgi_Common",

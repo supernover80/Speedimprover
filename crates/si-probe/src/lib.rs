@@ -17,6 +17,7 @@ pub mod generic;
 pub mod gpu_counters;
 pub mod mapping;
 pub mod presentmon;
+pub mod temps;
 #[cfg(windows)]
 pub mod win;
 pub mod winsettings;

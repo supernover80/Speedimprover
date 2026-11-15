@@ -64,6 +64,8 @@ pub struct GpuInfo {
     pub driver_version: Option<String>,
     /// `YYYY-MM-DD`.
     pub driver_date: Option<String>,
+    /// Windows adapter LUID (used to read GPU temperature); `None` off Windows.
+    pub luid: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]

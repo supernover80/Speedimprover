@@ -7,11 +7,14 @@ use si_core::model::SystemSnapshot;
 
 use crate::generic::{GenericProbe, now_unix};
 use crate::gpu_counters::aggregate_gpu;
+use crate::temps::{cpu_temp_from_sensors, gpu_temp_from_sensors, thermal_zone_celsius};
 use crate::{ScanResult, ScanStep, ScanWarning, SystemProbe};
 
 pub mod display;
 pub mod dxgi;
 pub mod games;
+pub mod gpu_perf;
+pub mod lhm;
 pub mod nvml;
 pub mod pdh;
 pub mod power;
@@ -26,8 +29,11 @@ pub struct WindowsProbe {
     generic: GenericProbe,
     pdh: Option<pdh::PdhSampler>,
     nvml: Option<nvml::NvmlReader>,
+    lhm: lhm::LhmReader,
     /// Dedicated VRAM of the primary GPU, from the last scan or DXGI.
     vram_total_mb: Option<u64>,
+    /// LUID of the primary GPU, for its temperature.
+    primary_luid: Option<u64>,
 }
 
 impl Default for WindowsProbe {
@@ -42,7 +48,9 @@ impl WindowsProbe {
             generic: GenericProbe::new(),
             pdh: pdh::PdhSampler::new().ok(),
             nvml: nvml::NvmlReader::new(),
+            lhm: lhm::LhmReader::new(),
             vram_total_mb: None,
+            primary_luid: None,
         }
     }
 
@@ -108,6 +116,10 @@ impl SystemProbe for WindowsProbe {
                 Err(_) => warnings.push(ScanWarning::new(step, "internal error while scanning")),
             }
         }
+        if let Some(gpu) = snapshot.primary_gpu() {
+            self.vram_total_mb = Some(gpu.vram_mb).filter(|&v| v > 0);
+            self.primary_luid = gpu.luid;
+        }
         ScanResult {
             snapshot,
             games,
@@ -117,19 +129,22 @@ impl SystemProbe for WindowsProbe {
 
     fn sample(&mut self) -> LiveSample {
         let mut sample = self.generic.sample();
-        if self.vram_total_mb.is_none() {
-            self.vram_total_mb = dxgi::enumerate_gpus().ok().and_then(|gpus| {
-                gpus.iter()
-                    .filter(|g| !g.is_integrated)
-                    .map(|g| g.vram_mb)
-                    .max()
-                    .filter(|&v| v > 0)
-            });
+        if self.vram_total_mb.is_none() || self.primary_luid.is_none() {
+            let gpus = dxgi::enumerate_gpus().unwrap_or_default();
+            let primary = gpus
+                .iter()
+                .filter(|g| !g.is_integrated)
+                .max_by_key(|g| g.vram_mb)
+                .or(gpus.first());
+            self.vram_total_mb = primary.map(|g| g.vram_mb).filter(|&v| v > 0);
+            self.primary_luid = primary.and_then(|g| g.luid);
         }
         sample.vram_total_mb = self.vram_total_mb;
 
+        let mut thermal_zones = Vec::new();
         if let Some(pdh) = &mut self.pdh {
             let reading = pdh.collect();
+            thermal_zones = reading.thermal_zones;
             sample.cpu_perf_pct = reading.cpu_perf_pct;
             sample.vram_used_mb = reading.vram_used_mb;
             if !reading.gpu_instances.is_empty() {
@@ -162,6 +177,20 @@ impl SystemProbe for WindowsProbe {
                 .or(sample.vram_total_mb);
             sample.gpu_temp_c = Some(nv.temp_c);
             sample.gpu_throttling = Some(nv.throttling);
+        }
+
+        // Temperatures: LibreHardwareMonitor when it runs (exact), else the
+        // ACPI thermal zone for the CPU and the graphics kernel for the GPU.
+        let sensors = self.lhm.read();
+        if let Some(t) = cpu_temp_from_sensors(&sensors) {
+            sample.cpu_temp_c = Some(t);
+            sample.cpu_temp_exact = true;
+        } else {
+            sample.cpu_temp_c = thermal_zone_celsius(&thermal_zones);
+        }
+        if sample.gpu_temp_c.is_none() {
+            sample.gpu_temp_c = gpu_temp_from_sensors(&sensors)
+                .or_else(|| self.primary_luid.and_then(gpu_perf::gpu_temperature));
         }
         sample
     }

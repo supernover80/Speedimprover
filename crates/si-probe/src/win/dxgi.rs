@@ -42,7 +42,10 @@ pub fn enumerate_gpus() -> windows::core::Result<Vec<GpuInfo>> {
             .to_string();
         let is_integrated =
             shares_system_memory(&adapter).unwrap_or_else(|| integrated_by_name(&name));
+        let luid = (u64::from(desc.AdapterLuid.HighPart as u32) << 32)
+            | u64::from(desc.AdapterLuid.LowPart);
         gpus.push(GpuInfo {
+            luid: Some(luid),
             vendor: vendor_from_pci_id(desc.VendorId),
             vram_mb: desc.DedicatedVideoMemory as u64 / MIB,
             is_integrated,

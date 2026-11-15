@@ -21,6 +21,8 @@ pub struct PdhReading {
     pub vram_used_mb: Option<u64>,
     /// `% Processor Performance` (below 100 = running under base clock).
     pub cpu_perf_pct: Option<f32>,
+    /// `(zone, Kelvin)` for every ACPI thermal zone.
+    pub thermal_zones: Vec<(String, f64)>,
 }
 
 pub struct PdhSampler {
@@ -28,6 +30,7 @@ pub struct PdhSampler {
     gpu_engine: Option<PDH_HCOUNTER>,
     gpu_memory: Option<PDH_HCOUNTER>,
     cpu_perf: Option<PDH_HCOUNTER>,
+    thermal: Option<PDH_HCOUNTER>,
 }
 
 fn check(status: u32) -> windows::core::Result<()> {
@@ -59,6 +62,7 @@ impl PdhSampler {
             cpu_perf: add(w!(
                 r"\Processor Information(_Total)\% Processor Performance"
             )),
+            thermal: add(w!(r"\Thermal Zone Information(*)\Temperature")),
         };
         // Rate counters need a first collection to compare against.
         // SAFETY: `query` is open.
@@ -85,6 +89,7 @@ impl PdhSampler {
             gpu_instances,
             vram_used_mb,
             cpu_perf_pct,
+            thermal_zones: self.thermal.map(read_array).unwrap_or_default(),
         }
     }
 }

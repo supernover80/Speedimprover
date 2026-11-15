@@ -30,6 +30,11 @@ pub struct LiveSample {
     pub ram_used_mb: u64,
     pub ram_total_mb: u64,
     pub gpu_temp_c: Option<f32>,
+    /// CPU temperature in °C.
+    pub cpu_temp_c: Option<f32>,
+    /// True when `cpu_temp_c` is the CPU's own sensor (LibreHardwareMonitor);
+    /// false for the approximate ACPI thermal-zone reading.
+    pub cpu_temp_exact: bool,
     /// GPU is thermally throttling (NVML; `None` on non-NVIDIA GPUs).
     pub gpu_throttling: Option<bool>,
     pub top_processes: Vec<ProcessUsage>,

@@ -58,6 +58,8 @@ impl SystemProbe for FixtureProbe {
             ram_used_mb: snap.memory.used_mb,
             ram_total_mb: snap.memory.total_mb,
             gpu_temp_c: Some((62.0 + 8.0 * (t / 11.0).sin()) as f32),
+            cpu_temp_c: Some((58.0 + 10.0 * (t / 9.0).sin()) as f32),
+            cpu_temp_exact: true,
             gpu_throttling: Some(false),
             top_processes: snap.processes.iter().take(8).cloned().collect(),
         }
