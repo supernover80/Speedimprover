@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release -p si-app
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "SpeedImprover-${{ github.ref_name }}-x64.zip"
+          Compress-Archive -Path target/release/speedimprover.exe, README.md -DestinationPath $name
+          "ZIP=$name" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP }}

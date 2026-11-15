@@ -31,5 +31,9 @@ anyhow.workspace = true
 tracing.workspace = true
 tracing-subscriber = "0.3.23"
 
+[build-dependencies]
+# Only used when building on Windows for Windows (see build.rs).
+winresource = "0.1.34"
+
 [dev-dependencies]
 egui_kittest = "0.36"
