@@ -47,6 +47,12 @@ pub struct AppState {
     pub fps_target: Option<String>,
     pub drivers: Vec<DriverRow>,
     pub drivers_checking: bool,
+    /// A driver install is running.
+    pub drivers_installing: bool,
+    /// Update IDs waiting for the user to confirm the install dialog.
+    pub install_confirm: Option<Vec<String>>,
+    /// Installed drivers need a restart.
+    pub reboot_required: bool,
     pub drivers_checked_at: Option<i64>,
     pub catalog_source: Option<CatalogSource>,
     pub expanded_finding: Option<&'static str>,
@@ -77,6 +83,9 @@ impl AppState {
             fps_target: None,
             drivers: Vec::new(),
             drivers_checking: false,
+            drivers_installing: false,
+            install_confirm: None,
+            reboot_required: false,
             drivers_checked_at: None,
             catalog_source: None,
             expanded_finding: None,
@@ -130,6 +139,34 @@ impl AppState {
                 self.drivers_checked_at = Some(checked_at_unix);
                 self.drivers_checking = false;
             }
+            WorkerEvent::DriversInstalled(report) => {
+                self.drivers_installing = false;
+                self.reboot_required |= report.reboot_required;
+                if !report.installed.is_empty() {
+                    self.toasts.push(
+                        format!("Installed {} driver update(s)", report.installed.len()),
+                        ToastKind::Success,
+                        self.now,
+                    );
+                }
+                if !report.failed.is_empty() {
+                    self.toasts.push(
+                        format!(
+                            "{} driver update(s) could not be installed",
+                            report.failed.len()
+                        ),
+                        ToastKind::Error,
+                        self.now,
+                    );
+                }
+                if !self.drivers_checking {
+                    self.request_driver_check();
+                }
+            }
+            WorkerEvent::InstallFailed(message) => {
+                self.drivers_installing = false;
+                self.toasts.push(message, ToastKind::Error, self.now);
+            }
             WorkerEvent::Error(message) => self.toasts.push(message, ToastKind::Error, self.now),
         }
     }
@@ -164,6 +201,22 @@ impl AppState {
             self.live_running = false;
             self.send(WorkerCommand::StopLive);
         }
+    }
+
+    /// Starts the install the user confirmed in the dialog.
+    pub fn confirm_install(&mut self) {
+        if let Some(update_ids) = self.install_confirm.take() {
+            self.drivers_installing = true;
+            self.send(WorkerCommand::InstallDrivers { update_ids });
+        }
+    }
+
+    /// Windows Update IDs of every driver that can be installed with one click.
+    pub fn installable_updates(&self) -> Vec<String> {
+        self.drivers
+            .iter()
+            .filter_map(|r| r.install_id.clone())
+            .collect()
     }
 
     /// What limits FPS right now, with the evidence.

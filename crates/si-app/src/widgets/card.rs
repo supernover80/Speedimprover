@@ -121,3 +121,19 @@ pub fn gradient_card(ui: &mut Ui, p: &Palette, lines: &[&str]) {
         );
     }
 }
+
+/// A full-width notice with an icon (e.g. "Restart your PC…").
+pub fn banner(ui: &mut Ui, p: &Palette, icon: &str, color: Color32, text: &str) {
+    Frame::new()
+        .fill(p.card)
+        .stroke(Stroke::new(1.0, color))
+        .corner_radius(CornerRadius::same(CARD_RADIUS))
+        .inner_margin(Margin::symmetric(14, 10))
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(icon).size(18.0).color(color));
+                ui.label(RichText::new(text).strong());
+            });
+        });
+}

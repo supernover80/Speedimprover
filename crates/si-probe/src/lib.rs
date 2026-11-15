@@ -136,3 +136,38 @@ pub fn search_windows_update_drivers() -> Result<Vec<AvailableDriverUpdate>, Pro
         Ok(Vec::new())
     }
 }
+pub mod install;
+
+/// Installs the given Windows Update driver updates, asking Windows for
+/// administrator rights (UAC). Blocks until the install finishes.
+pub fn install_driver_updates_elevated(
+    update_ids: &[String],
+) -> Result<install::InstallReport, ProbeError> {
+    #[cfg(windows)]
+    {
+        win::elevate::run_elevated_install(update_ids)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = update_ids;
+        Err(ProbeError::Windows(
+            "Driver installation is only available on Windows".into(),
+        ))
+    }
+}
+
+/// Runs inside the elevated helper: creates a restore point, then downloads
+/// and installs the updates through Windows Update.
+pub fn install_driver_updates_here(update_ids: &[String]) -> install::InstallReport {
+    #[cfg(windows)]
+    {
+        win::install_with_restore_point(update_ids)
+    }
+    #[cfg(not(windows))]
+    {
+        install::InstallReport {
+            failed: update_ids.to_vec(),
+            ..Default::default()
+        }
+    }
+}

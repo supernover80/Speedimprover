@@ -12,6 +12,7 @@ use crate::{ScanResult, ScanStep, ScanWarning, SystemProbe};
 
 pub mod display;
 pub mod dxgi;
+pub mod elevate;
 pub mod games;
 pub mod gpu_perf;
 pub mod lhm;
@@ -19,6 +20,7 @@ pub mod nvml;
 pub mod pdh;
 pub mod power;
 pub mod registry;
+pub mod restore;
 pub mod wmi;
 pub mod wua;
 
@@ -194,4 +196,19 @@ impl SystemProbe for WindowsProbe {
         }
         sample
     }
+}
+
+/// Runs in the elevated helper: restore point, then the Windows Update install.
+pub fn install_with_restore_point(update_ids: &[String]) -> crate::install::InstallReport {
+    let restore_point = restore::begin();
+    let mut report =
+        wua::install_drivers(update_ids).unwrap_or_else(|e| crate::install::InstallReport {
+            failed: vec![format!("Windows Update error: {e}")],
+            ..Default::default()
+        });
+    if let Some(sequence) = restore_point {
+        restore::end(sequence);
+    }
+    report.restore_point_created = restore_point.is_some();
+    report
 }

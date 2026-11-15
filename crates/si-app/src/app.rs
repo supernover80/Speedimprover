@@ -97,6 +97,7 @@ impl SpeedImproverApp {
         CentralPanel::default()
             .frame(Frame::new().fill(palette.bg).inner_margin(Margin::same(20)))
             .show(ui, |ui| pages::show(ui, &mut self.state));
+        pages::drivers::install_dialog(&ctx, &mut self.state);
         self.state.toasts.show(&ctx, &palette, self.state.now);
     }
 

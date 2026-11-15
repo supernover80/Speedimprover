@@ -24,6 +24,17 @@ fn init_logging(log_file: &Path) {
 }
 
 fn main() -> eframe::Result {
+    // Elevated helper mode: install the given Windows Update drivers, write
+    // the report and exit without opening a window.
+    let args: Vec<String> = std::env::args().collect();
+    if let Some((result, update_ids)) = si_probe::install::parse_helper_args(&args) {
+        let report = si_probe::install_driver_updates_here(&update_ids);
+        if let Ok(json) = serde_json::to_string(&report) {
+            let _ = std::fs::write(result, json);
+        }
+        return Ok(());
+    }
+
     let paths = AppPaths::from_project_dirs()
         .unwrap_or_else(|| AppPaths::in_dir(&std::env::temp_dir().join("SpeedImprover")));
     init_logging(&paths.log_file);

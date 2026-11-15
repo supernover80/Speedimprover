@@ -1,7 +1,7 @@
 //! Text and colour helpers shared by the pages.
 
 use egui::Color32;
-use si_core::drivers::DriverStatus;
+use si_core::drivers::{DriverStatus, UpdateSource};
 use si_core::findings::Severity;
 use si_core::tier::Tier;
 
@@ -32,7 +32,11 @@ pub fn tier_badge(t: Tier) -> String {
 /// Pill text for a driver row.
 pub fn driver_status_label(s: &DriverStatus) -> &'static str {
     match s {
-        DriverStatus::UpdateAvailable { .. } => "Update",
+        DriverStatus::UpdateAvailable {
+            source: UpdateSource::WindowsUpdate,
+            ..
+        } => "Install",
+        DriverStatus::UpdateAvailable { .. } => "Download",
         DriverStatus::PossiblyOutdated { .. } => "Check",
         DriverStatus::NoUpdateFound => "No update found",
     }

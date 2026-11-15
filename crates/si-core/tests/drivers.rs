@@ -159,3 +159,26 @@ fn catalog_drops_entries_without_https_download_url() {
     assert_eq!(cat.entries.len(), 1);
     assert_eq!(cat.entries[0].vendor, DriverVendor::Amd);
 }
+
+#[test]
+fn windows_update_rows_are_installable() {
+    let wu = [AvailableDriverUpdate {
+        hardware_id: "pci\\ven_8086&dev_46a8".into(),
+        update_id: "0b5b8d3c-1a2b-4c5d-8e9f-001122334455".into(),
+        ..Default::default()
+    }];
+    let rows = evaluate_drivers(&fixtures::struggling_laptop(), &DriverCatalog::empty(), &wu);
+    let iris = rows
+        .iter()
+        .find(|r| r.driver.device_name == "Intel(R) Iris(R) Xe Graphics")
+        .unwrap();
+    assert_eq!(
+        iris.install_id.as_deref(),
+        Some("0b5b8d3c-1a2b-4c5d-8e9f-001122334455")
+    );
+    let wifi = rows
+        .iter()
+        .find(|r| r.driver.device_name == "Intel(R) Wi-Fi 6 AX201 160MHz")
+        .unwrap();
+    assert_eq!(wifi.install_id, None);
+}

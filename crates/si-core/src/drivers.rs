@@ -142,6 +142,9 @@ pub struct AvailableDriverUpdate {
     pub driver_class: String,
     pub driver_model: String,
     pub ver_date: Option<String>,
+    /// Windows Update's ID for this update (a GUID), used to install it.
+    #[serde(default)]
+    pub update_id: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -180,6 +183,9 @@ impl DriverStatus {
 pub struct DriverRow {
     pub driver: DriverInfo,
     pub status: DriverStatus,
+    /// Windows Update ID when this driver can be installed with one click.
+    #[serde(default)]
+    pub install_id: Option<String>,
 }
 
 /// Drivers that matter for gaming: graphics, network, audio, storage,
@@ -206,9 +212,15 @@ pub fn evaluate_drivers(
         .drivers
         .iter()
         .filter(|d| is_shown_class(d))
-        .map(|d| DriverRow {
-            driver: d.clone(),
-            status: status_for(s, d, catalog, wu),
+        .map(|d| {
+            let offered = offered_update(d, wu);
+            DriverRow {
+                driver: d.clone(),
+                status: status_for(s, d, catalog, offered.is_some()),
+                install_id: offered
+                    .map(|u| u.update_id.clone())
+                    .filter(|id| !id.is_empty()),
+            }
         })
         .collect();
     rows.sort_by(|a, b| {
@@ -220,17 +232,24 @@ pub fn evaluate_drivers(
     rows
 }
 
+/// The Windows Update offer whose hardware ID matches this device, if any.
+fn offered_update<'a>(
+    d: &DriverInfo,
+    wu: &'a [AvailableDriverUpdate],
+) -> Option<&'a AvailableDriverUpdate> {
+    wu.iter().find(|u| {
+        d.hardware_ids
+            .iter()
+            .any(|h| h.eq_ignore_ascii_case(&u.hardware_id))
+    })
+}
+
 fn status_for(
     s: &SystemSnapshot,
     d: &DriverInfo,
     catalog: &DriverCatalog,
-    wu: &[AvailableDriverUpdate],
+    offered: bool,
 ) -> DriverStatus {
-    let offered = wu.iter().any(|u| {
-        d.hardware_ids
-            .iter()
-            .any(|h| h.eq_ignore_ascii_case(&u.hardware_id))
-    });
     if offered {
         return DriverStatus::UpdateAvailable {
             source: UpdateSource::WindowsUpdate,

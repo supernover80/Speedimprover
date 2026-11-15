@@ -9,7 +9,7 @@ use si_core::findings::Severity;
 use si_core::model::{DiskMedia, Store};
 
 use crate::nav::Page;
-use crate::pages::drivers::status_pill;
+use crate::pages::drivers::{apply_pill_action, row_pill};
 use crate::state::AppState;
 use crate::theme::{GAP, Palette, ThemeChoice};
 use crate::widgets::card::{card, gradient_card};
@@ -246,10 +246,9 @@ fn drivers_card(ui: &mut Ui, state: &mut AppState) {
         for row in state.drivers.iter().take(MAX_DRIVER_ROWS) {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(icons::FILE_TEXT).size(20.0).color(p.accent));
-                let status = &row.status;
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    if let Some(url) = status_pill(ui, &p, status) {
-                        open_url = Some(url);
+                    if let Some(action) = row_pill(ui, &p, row) {
+                        open_url = Some(action);
                     }
                     ui.with_layout(Layout::top_down(Align::Min), |ui| {
                         truncated(ui, RichText::new(&row.driver.device_name).strong());
@@ -274,8 +273,8 @@ fn drivers_card(ui: &mut Ui, state: &mut AppState) {
     if response.action_clicked || open_page {
         state.set_page(Page::Drivers);
     }
-    if let Some(url) = open_url {
-        state.open_url(url);
+    if let Some(action) = open_url {
+        apply_pill_action(state, action);
     }
 }
 

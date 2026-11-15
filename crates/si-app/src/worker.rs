@@ -31,6 +31,10 @@ pub enum WorkerCommand {
         process_name: String,
     },
     StopFps,
+    /// Install these Windows Update driver updates (asks for admin rights).
+    InstallDrivers {
+        update_ids: Vec<String>,
+    },
     Shutdown,
 }
 
@@ -49,6 +53,8 @@ pub enum WorkerEvent {
         catalog: CatalogSource,
         checked_at_unix: i64,
     },
+    DriversInstalled(si_probe::install::InstallReport),
+    InstallFailed(String),
     Error(String),
 }
 
@@ -175,6 +181,7 @@ impl Worker {
                 ))),
             },
             WorkerCommand::StopFps => self.fps = None,
+            WorkerCommand::InstallDrivers { update_ids } => self.install_drivers(update_ids),
             WorkerCommand::Shutdown => {}
         }
     }
@@ -236,6 +243,27 @@ impl Worker {
         if let Err(e) = spawned {
             self.events.send(WorkerEvent::Error(format!(
                 "Could not start the driver check: {e}"
+            )));
+        }
+    }
+
+    /// Runs the elevated installer on its own thread (it waits for UAC and
+    /// for Windows Update, which can take minutes).
+    fn install_drivers(&self, update_ids: Vec<String>) {
+        let events = self.events.clone();
+        let spawned = thread::Builder::new()
+            .name("speedimprover-install".into())
+            .spawn(move || {
+                let event = match si_probe::install_driver_updates_elevated(&update_ids) {
+                    Ok(report) => WorkerEvent::DriversInstalled(report),
+                    Err(ProbeError::Windows(message)) => WorkerEvent::InstallFailed(message),
+                    Err(e) => WorkerEvent::InstallFailed(e.to_string()),
+                };
+                events.send(event);
+            });
+        if let Err(e) = spawned {
+            self.events.send(WorkerEvent::InstallFailed(format!(
+                "Could not start the installer: {e}"
             )));
         }
     }
