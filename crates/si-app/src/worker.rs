@@ -7,7 +7,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crossbeam_channel::{Receiver, RecvTimeoutError, Sender, unbounded};
 use si_core::drivers::{AvailableDriverUpdate, DriverRow, evaluate_drivers};
-use si_core::frames::{FrameStats, FrameWindow, frame_stats};
+use si_core::frames::{FrameSample, FrameStats, FrameWindow, frame_stats};
 use si_core::live::LiveSample;
 use si_probe::catalog::{CatalogSource, load_catalog};
 use si_probe::presentmon::PresentMonSession;
@@ -42,6 +42,7 @@ pub enum WorkerEvent {
     Frames {
         stats: FrameStats,
         frame_times: Vec<f64>,
+        frames: Vec<FrameSample>,
     },
     Drivers {
         rows: Vec<DriverRow>,
@@ -248,7 +249,11 @@ impl Worker {
             session.drain_into(window);
             let frame_times = window.as_slice();
             if let Some(stats) = frame_stats(&frame_times) {
-                self.events.send(WorkerEvent::Frames { stats, frame_times });
+                self.events.send(WorkerEvent::Frames {
+                    stats,
+                    frame_times,
+                    frames: window.samples(),
+                });
             }
             stopped = !session.is_running();
         }

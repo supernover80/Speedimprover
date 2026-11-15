@@ -8,7 +8,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
 
-use si_core::frames::{FrameTimeParser, FrameWindow};
+use si_core::frames::{FrameSample, FrameTimeParser, FrameWindow};
 
 use crate::ProbeError;
 
@@ -35,7 +35,7 @@ pub fn presentmon_args(process_name: &str) -> Vec<String> {
 /// A running capture. Dropping it stops PresentMon.
 pub struct PresentMonSession {
     child: Child,
-    frames: Receiver<f64>,
+    frames: Receiver<FrameSample>,
 }
 
 impl PresentMonSession {
@@ -66,8 +66,8 @@ impl PresentMonSession {
             let mut parser = FrameTimeParser::new();
             for line in BufReader::new(stdout).lines() {
                 let Ok(line) = line else { break };
-                if let Some(ms) = parser.feed_line(&line) {
-                    if tx.send(ms).is_err() {
+                if let Some(frame) = parser.feed(&line) {
+                    if tx.send(frame).is_err() {
                         break;
                     }
                 }
@@ -78,7 +78,10 @@ impl PresentMonSession {
 
     /// Moves every frame received so far into `window`; returns how many.
     pub fn drain_into(&self, window: &mut FrameWindow) -> usize {
-        self.frames.try_iter().map(|ms| window.push(ms)).count()
+        self.frames
+            .try_iter()
+            .map(|frame| window.push_sample(frame))
+            .count()
     }
 
     pub fn is_running(&mut self) -> bool {

@@ -1,4 +1,4 @@
-//! Real FPS from PresentMon's CSV output: frame-time parsing and statistics.
+//! Real FPS from PresentMon's CSV output: per-frame timing and statistics.
 
 use std::collections::VecDeque;
 
@@ -6,13 +6,49 @@ use serde::{Deserialize, Serialize};
 
 /// Frame-time column names: PresentMon 1.x / `--v1_metrics`, then 2.x.
 const FRAME_TIME_COLUMNS: [&str; 2] = ["MsBetweenPresents", "FrameTime"];
+/// How long the CPU worked on a frame (PresentMon 2.x).
+const CPU_BUSY_COLUMNS: [&str; 2] = ["CPUBusy", "MsCPUBusy"];
+/// How long the GPU worked on a frame (PresentMon 2.x; `MsGPUActive` in 1.9).
+const GPU_BUSY_COLUMNS: [&str; 3] = ["GPUBusy", "MsGPUBusy", "MsGPUActive"];
+
+/// One presented frame. The busy times come from PresentMon 2.x and say how
+/// much of the frame the CPU and the GPU were actually working.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct FrameSample {
+    pub frame_ms: f64,
+    pub cpu_busy_ms: Option<f64>,
+    pub gpu_busy_ms: Option<f64>,
+}
+
+impl FrameSample {
+    pub fn new(frame_ms: f64) -> Self {
+        Self {
+            frame_ms,
+            cpu_busy_ms: None,
+            gpu_busy_ms: None,
+        }
+    }
+}
 
 /// Streams PresentMon CSV lines. The first line is the header; every later
-/// line yields its frame time in milliseconds, or `None` if unusable.
+/// line yields a frame, or `None` if it has no usable frame time.
 #[derive(Debug, Clone, Default)]
 pub struct FrameTimeParser {
     header_seen: bool,
-    column: Option<usize>,
+    frame: Option<usize>,
+    cpu_busy: Option<usize>,
+    gpu_busy: Option<usize>,
+}
+
+fn find_column(headers: &[&str], names: &[&str]) -> Option<usize> {
+    names
+        .iter()
+        .find_map(|name| headers.iter().position(|h| h.eq_ignore_ascii_case(name)))
+}
+
+fn number(fields: &[&str], column: Option<usize>) -> Option<f64> {
+    let value: f64 = fields.get(column?)?.trim().parse().ok()?;
+    (value.is_finite() && value >= 0.0).then_some(value)
 }
 
 impl FrameTimeParser {
@@ -20,18 +56,28 @@ impl FrameTimeParser {
         Self::default()
     }
 
-    pub fn feed_line(&mut self, line: &str) -> Option<f64> {
+    pub fn feed(&mut self, line: &str) -> Option<FrameSample> {
         let line = line.trim();
         if !self.header_seen {
             self.header_seen = true;
             let headers: Vec<&str> = line.split(',').map(str::trim).collect();
-            self.column = FRAME_TIME_COLUMNS
-                .iter()
-                .find_map(|name| headers.iter().position(|h| h == name));
+            self.frame = find_column(&headers, &FRAME_TIME_COLUMNS);
+            self.cpu_busy = find_column(&headers, &CPU_BUSY_COLUMNS);
+            self.gpu_busy = find_column(&headers, &GPU_BUSY_COLUMNS);
             return None;
         }
-        let value: f64 = line.split(',').nth(self.column?)?.trim().parse().ok()?;
-        (value.is_finite() && value > 0.0).then_some(value)
+        let fields: Vec<&str> = line.split(',').collect();
+        let frame_ms = number(&fields, self.frame).filter(|&v| v > 0.0)?;
+        Some(FrameSample {
+            frame_ms,
+            cpu_busy_ms: number(&fields, self.cpu_busy),
+            gpu_busy_ms: number(&fields, self.gpu_busy),
+        })
+    }
+
+    /// The frame time of a line (milliseconds).
+    pub fn feed_line(&mut self, line: &str) -> Option<f64> {
+        self.feed(line).map(|f| f.frame_ms)
     }
 }
 
@@ -67,7 +113,7 @@ pub fn frame_stats(frame_times_ms: &[f64]) -> Option<FrameStats> {
 pub struct FrameWindow {
     window_ms: f64,
     total_ms: f64,
-    frames: VecDeque<f64>,
+    frames: VecDeque<FrameSample>,
 }
 
 impl FrameWindow {
@@ -80,17 +126,26 @@ impl FrameWindow {
     }
 
     pub fn push(&mut self, ms: f64) {
-        self.frames.push_back(ms);
-        self.total_ms += ms;
+        self.push_sample(FrameSample::new(ms));
+    }
+
+    pub fn push_sample(&mut self, frame: FrameSample) {
+        self.total_ms += frame.frame_ms;
+        self.frames.push_back(frame);
         while self.total_ms > self.window_ms {
             match self.frames.pop_front() {
-                Some(old) => self.total_ms -= old,
+                Some(old) => self.total_ms -= old.frame_ms,
                 None => break,
             }
         }
     }
 
+    /// Frame times (milliseconds), oldest first.
     pub fn as_slice(&self) -> Vec<f64> {
+        self.frames.iter().map(|f| f.frame_ms).collect()
+    }
+
+    pub fn samples(&self) -> Vec<FrameSample> {
         self.frames.iter().copied().collect()
     }
 }

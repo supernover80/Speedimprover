@@ -2,9 +2,10 @@
 //! this state and queue [`UiEffect`]s; the app carries the effects out, so
 //! pages stay testable without a worker.
 
+use si_core::bottleneck::{BottleneckReport, analyze_bottleneck};
 use si_core::drivers::DriverRow;
 use si_core::findings::{Finding, health_score};
-use si_core::frames::FrameStats;
+use si_core::frames::{FrameSample, FrameStats};
 use si_core::live::LiveHistory;
 use si_core::rules::analyze;
 use si_core::tier::{HardwareProfile, hardware_profile};
@@ -41,6 +42,8 @@ pub struct AppState {
     pub live_running: bool,
     pub fps: Option<FrameStats>,
     pub frame_times: Vec<f64>,
+    /// PresentMon frames of the last few seconds (with CPU/GPU busy times).
+    pub frame_samples: Vec<FrameSample>,
     pub fps_target: Option<String>,
     pub drivers: Vec<DriverRow>,
     pub drivers_checking: bool,
@@ -70,6 +73,7 @@ impl AppState {
             live_running: false,
             fps: None,
             frame_times: Vec::new(),
+            frame_samples: Vec::new(),
             fps_target: None,
             drivers: Vec::new(),
             drivers_checking: false,
@@ -107,9 +111,14 @@ impl AppState {
                 self.scan = Some(*result);
             }
             WorkerEvent::Sample(sample) => self.live.push(sample),
-            WorkerEvent::Frames { stats, frame_times } => {
+            WorkerEvent::Frames {
+                stats,
+                frame_times,
+                frames,
+            } => {
                 self.fps = Some(stats);
                 self.frame_times = frame_times;
+                self.frame_samples = frames;
             }
             WorkerEvent::Drivers {
                 rows,
@@ -155,6 +164,16 @@ impl AppState {
             self.live_running = false;
             self.send(WorkerCommand::StopLive);
         }
+    }
+
+    /// What limits FPS right now, with the evidence.
+    pub fn bottleneck_report(&self) -> BottleneckReport {
+        let samples: Vec<_> = self.live.samples().cloned().collect();
+        let max_hz = self
+            .scan
+            .as_ref()
+            .and_then(|s| s.snapshot.displays.iter().map(|d| d.max_hz).max());
+        analyze_bottleneck(&samples, &self.frame_samples, max_hz)
     }
 
     pub fn set_theme(&mut self, t: ThemeChoice) {
