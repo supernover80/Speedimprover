@@ -21,18 +21,54 @@ SpeedImprover only **reads** your system. It never changes settings, edits the r
 
 ## Requirements
 
-- Windows 10 22H2 or later, or Windows 11 (x64).
+- Windows 10 22H2 or later, or Windows 11 (64-bit).
 - No administrator rights needed, except for real-FPS capture with PresentMon.
+- No installer and no background service: it is a single `.exe`.
 
-## Build and run
+## Download and run
 
-Install [Rust](https://rustup.rs) (stable), then:
+1. Open the [Releases page](https://github.com/supernover80/Speedimprover/releases) and, under the newest release, download **`SpeedImprover-vX.Y.Z-x64.zip`**.
+2. Right-click the zip and choose **Extract All…**, then pick a folder to keep it in (for example `Documents\SpeedImprover`).
+3. Open that folder and double-click **`speedimprover.exe`**.
+4. The first time, Windows may show **"Windows protected your PC"** (SmartScreen), because the app is not code-signed. Click **More info**, then **Run anyway**.
+5. The app opens on the Dashboard and starts scanning straight away. The scan takes a few seconds; the driver check (Windows Update) can take up to a minute and finishes in the background.
+
+Tips:
+
+- **Pin it:** right-click `speedimprover.exe` → **Pin to Start**, or create a desktop shortcut.
+- **Real FPS** needs administrator rights: right-click `speedimprover.exe` → **Run as administrator** (see [Measuring real FPS](#measuring-real-fps)).
+- **Update:** download the newer zip and replace `speedimprover.exe`. Your settings are kept.
+- **Uninstall:** delete the folder you extracted, and `%APPDATA%\SpeedImprover` if you also want to remove settings and the log.
+
+No release yet, or want the latest code? Run it from source instead.
+
+## Run from source
+
+On the Windows PC:
+
+1. Install the [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (choose **Desktop development with C++**) — Rust needs its linker.
+2. Install [Rust](https://rustup.rs) with the default options.
+3. Install [Git](https://git-scm.com/download/win), then in a terminal:
+
+```bash
+git clone https://github.com/supernover80/Speedimprover.git
+```
+
+```bash
+cd Speedimprover
+```
+
+4. Build and start the app (the first build takes a few minutes):
+
+```bash
+cargo run --release -p si-app
+```
+
+The built program is `target\release\speedimprover.exe`; you can copy it anywhere and run it on its own. To only build it:
 
 ```bash
 cargo build --release -p si-app
 ```
-
-The app is `target/release/speedimprover.exe`.
 
 **Demo mode** (any OS, no real scan) runs the whole UI on saved data:
 
@@ -112,4 +148,16 @@ Run through this on at least one desktop with a graphics card and one laptop:
 - The Games page lists Steam and Epic games, and recommendations change with the goal.
 - On a non-English Windows install, the CPU performance and GPU readings still appear.
 
-Pushing a tag like `v0.1.0` builds `speedimprover.exe` on GitHub Actions and attaches `SpeedImprover-v0.1.0-x64.zip` to a GitHub release.
+## Publishing a release
+
+The download on the Releases page is built by GitHub Actions. To publish a new version, push a version tag:
+
+```bash
+git tag v0.1.0
+```
+
+```bash
+git push origin v0.1.0
+```
+
+The **Release** workflow then builds `speedimprover.exe` on Windows and attaches `SpeedImprover-v0.1.0-x64.zip` (the program plus this README) to a new GitHub release.
