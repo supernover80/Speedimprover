@@ -1,22 +1,31 @@
-//! Live Monitor: what limits FPS right now, load charts, top processes and
-//! real FPS through PresentMon.
+//! Performance: exactly what limits the frame rate (with the evidence),
+//! load charts, temperatures, top processes and real FPS through PresentMon.
 
 use egui::{
-    Align, ComboBox, CornerRadius, Frame, Grid, Layout, Margin, RichText, ScrollArea, Stroke, Ui,
+    Align, Color32, ComboBox, CornerRadius, Grid, Label, Layout, RichText, ScrollArea, Sense, Ui,
+    vec2,
 };
 use egui_phosphor::regular as icons;
+use si_core::bottleneck::BottleneckReport;
 use si_core::live::{Bottleneck, LiveSample};
 
 use crate::nav::Page;
+use crate::pages::dashboard::{source_text, temperature_text};
 use crate::state::AppState;
-use crate::theme::{CARD_RADIUS, GAP};
-use crate::widgets::card::card;
+use crate::theme::{CARD_PADDING, GAP, Palette, heading};
+use crate::widgets::card::{card, column};
 use crate::widgets::chart::line_chart;
 use crate::widgets::format::format_mb;
 use crate::widgets::pill::{PillKind, pill};
 use crate::worker::WorkerCommand;
 
 const CHART_HEIGHT: f32 = 110.0;
+const SCROLLBAR_ROOM: f32 = 14.0;
+const BAR_WIDTH: f32 = 120.0;
+const TEMP_CHART_MAX_C: f64 = 100.0;
+/// Shown when the CPU temperature is missing or only approximate.
+pub const LHM_HINT: &str =
+    "For exact CPU temperatures, run LibreHardwareMonitor in the background.";
 const PROCESS_NAME_WIDTH: f32 = 180.0;
 const DESKTOP_WINDOW_MANAGER: &str = "dwm.exe";
 
@@ -37,42 +46,33 @@ fn percent(used: u64, total: u64) -> Option<f64> {
 }
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    ui.label(RichText::new("Live performance").size(22.0).strong());
-    ui.add_space(GAP);
-    verdict_banner(ui, state);
-    ui.add_space(GAP);
-
+    let report = state.bottleneck_report();
     ScrollArea::vertical().auto_shrink(false).show(ui, |ui| {
-        let width = ui.available_width() - GAP - 14.0;
+        let width = ui.available_width() - SCROLLBAR_ROOM;
+        ui.set_max_width(width);
+        ui.spacing_mut().item_spacing.y = GAP;
+        ui.label(heading(ui, "Live performance", 22.0));
+        ui.label(
+            RichText::new("Live load, temperatures and what limits your frame rate")
+                .color(state.palette.text_muted),
+        );
+        analysis_card(ui, &state.palette, &report, width);
+        let left = (width - GAP) * 0.6;
+        let right = width - GAP - left;
         ui.horizontal_top(|ui| {
             ui.spacing_mut().item_spacing.x = GAP;
-            ui.allocate_ui_with_layout(
-                egui::vec2(width * 0.6, ui.available_height()),
-                Layout::top_down(Align::Min),
-                |ui| {
-                    ui.set_width(width * 0.6);
-                    ui.spacing_mut().item_spacing.y = GAP;
-                    charts(ui, state);
-                },
-            );
-            ui.allocate_ui_with_layout(
-                egui::vec2(width * 0.4, ui.available_height()),
-                Layout::top_down(Align::Min),
-                |ui| {
-                    ui.set_width(width * 0.4);
-                    ui.spacing_mut().item_spacing.y = GAP;
-                    fps_panel(ui, state);
-                    processes(ui, state);
-                },
-            );
+            column(ui, left, |ui| charts(ui, state));
+            column(ui, right, |ui| {
+                temperatures(ui, state);
+                fps_panel(ui, state);
+                processes(ui, state);
+            });
         });
     });
 }
 
-fn verdict_banner(ui: &mut Ui, state: &AppState) {
-    let p = state.palette;
-    let verdict = state.live.verdict();
-    let (icon, color) = match verdict {
+fn verdict_style(p: &Palette, verdict: Bottleneck) -> (&'static str, Color32) {
+    match verdict {
         Bottleneck::InsufficientData => (icons::HOURGLASS, p.text_muted),
         Bottleneck::Balanced | Bottleneck::FrameCapped => (icons::CHECK_CIRCLE, p.success),
         Bottleneck::GpuBound | Bottleneck::CpuBound => (icons::GAUGE, p.accent),
@@ -80,19 +80,114 @@ fn verdict_banner(ui: &mut Ui, state: &AppState) {
         | Bottleneck::RamLimited
         | Bottleneck::CpuThrottled
         | Bottleneck::GpuThrottled => (icons::WARNING, p.warning),
+    }
+}
+
+/// A thin horizontal bar filled to `share` (0–1); blank space without one.
+fn share_bar(ui: &mut Ui, p: &Palette, share: Option<f32>, limiting: bool) {
+    let (rect, _) = ui.allocate_exact_size(vec2(BAR_WIDTH, 6.0), Sense::hover());
+    let Some(share) = share else {
+        return;
     };
-    Frame::new()
-        .fill(p.card)
-        .stroke(Stroke::new(1.0, color))
-        .corner_radius(CornerRadius::same(CARD_RADIUS))
-        .inner_margin(Margin::same(14))
-        .show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            ui.horizontal(|ui| {
-                ui.label(RichText::new(icon).size(22.0).color(color));
-                ui.label(RichText::new(verdict.explanation()).size(15.0).strong());
+    let painter = ui.painter();
+    painter.rect_filled(rect, CornerRadius::same(3), p.card_raised);
+    let mut fill = rect;
+    fill.set_width(rect.width() * share.clamp(0.0, 1.0));
+    let color = if limiting { p.accent } else { p.text_muted };
+    painter.rect_filled(fill, CornerRadius::same(3), color);
+}
+
+fn analysis_card(ui: &mut Ui, p: &Palette, report: &BottleneckReport, width: f32) {
+    card(ui, p, "Bottleneck analysis", None, |ui| {
+        let (icon, color) = verdict_style(p, report.verdict);
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(icon).size(22.0).color(color));
+            ui.label(heading(ui, &report.headline, 18.0));
+        });
+        ui.label(RichText::new(source_text(report)).color(p.text_muted));
+        ui.add_space(10.0);
+        let inner = width - 2.0 * f32::from(CARD_PADDING);
+        let left = (inner - GAP) * 0.55;
+        let right = inner - GAP - left;
+        ui.horizontal_top(|ui| {
+            ui.spacing_mut().item_spacing.x = GAP;
+            column(ui, left, |ui| {
+                ui.label(RichText::new("Evidence").strong());
+                if report.evidence.is_empty() {
+                    ui.label(RichText::new("Collecting data…").color(p.text_muted));
+                    return;
+                }
+                Grid::new("bottleneck-evidence")
+                    .num_columns(3)
+                    .spacing([14.0, 8.0])
+                    .show(ui, |ui| {
+                        for item in &report.evidence {
+                            let color = if item.limiting { p.text } else { p.text_muted };
+                            ui.label(RichText::new(&item.label).color(color));
+                            share_bar(ui, p, item.share, item.limiting);
+                            let value = RichText::new(&item.value);
+                            ui.label(if item.limiting { value.strong() } else { value });
+                            ui.end_row();
+                        }
+                    });
+            });
+            column(ui, right, |ui| {
+                ui.label(RichText::new("What to do").strong());
+                for action in &report.actions {
+                    ui.horizontal_top(|ui| {
+                        ui.label(RichText::new(icons::ARROW_RIGHT).color(p.accent));
+                        ui.add(Label::new(action).wrap());
+                    });
+                }
             });
         });
+    });
+}
+
+fn temperatures(ui: &mut Ui, state: &AppState) {
+    let p = state.palette;
+    card(ui, &p, "Temperatures", None, |ui| {
+        let latest = state.live.latest();
+        let cpu = latest.and_then(|s| s.cpu_temp_c);
+        let cpu_exact = latest.is_some_and(|s| s.cpu_temp_exact);
+        let gpu = latest.and_then(|s| s.gpu_temp_c);
+        Grid::new("temperatures")
+            .num_columns(2)
+            .spacing([24.0, 6.0])
+            .show(ui, |ui| {
+                ui.label(RichText::new("Processor").color(p.text_muted));
+                ui.label(RichText::new(temperature_text(cpu, cpu_exact)).strong());
+                ui.end_row();
+                ui.label(RichText::new("Graphics card").color(p.text_muted));
+                ui.label(RichText::new(temperature_text(gpu, true)).strong());
+                ui.end_row();
+            });
+        let samples: Vec<&LiveSample> = state.live.samples().collect();
+        let series = |f: fn(&LiveSample) -> Option<f32>| -> Vec<[f64; 2]> {
+            samples
+                .iter()
+                .enumerate()
+                .filter_map(|(i, s)| f(s).map(|t| [i as f64, f64::from(t)]))
+                .collect()
+        };
+        let cpu_points = series(|s| s.cpu_temp_c);
+        let gpu_points = series(|s| s.gpu_temp_c);
+        if !cpu_points.is_empty() || !gpu_points.is_empty() {
+            line_chart(
+                ui,
+                "live-temps",
+                &[
+                    ("CPU", cpu_points, p.accent),
+                    ("GPU", gpu_points, p.success),
+                ],
+                TEMP_CHART_MAX_C,
+                70.0,
+            );
+        }
+        if latest.is_some() && !cpu_exact {
+            ui.label(RichText::new(LHM_HINT).size(11.0).color(p.text_muted));
+        }
+    });
 }
 
 fn charts(ui: &mut Ui, state: &AppState) {

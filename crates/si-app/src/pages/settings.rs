@@ -6,22 +6,30 @@ use egui::RichText;
 
 use crate::settings::DEFAULT_CATALOG_URL;
 use crate::state::{AppState, UiEffect};
-use crate::theme::ThemeChoice;
+use crate::theme::{ThemeChoice, heading};
 
 const PRESENTMON_RELEASES: &str = "https://github.com/GameTechDev/PresentMon/releases";
 
 pub fn show(ui: &mut egui::Ui, state: &mut AppState) {
-    ui.label(RichText::new("Preferences").size(22.0).strong());
+    ui.label(heading(ui, "Preferences", 22.0));
     ui.add_space(16.0);
 
-    let mut dark = state.settings.theme == ThemeChoice::Dark;
-    if ui.checkbox(&mut dark, "Dark theme").changed() {
-        state.set_theme(if dark {
-            ThemeChoice::Dark
-        } else {
-            ThemeChoice::Light
-        });
-    }
+    ui.label(RichText::new("Theme").strong());
+    ui.horizontal(|ui| {
+        for (choice, name) in [
+            (ThemeChoice::System, "System"),
+            (ThemeChoice::Light, "Light"),
+            (ThemeChoice::Dark, "Dark"),
+        ] {
+            if ui
+                .selectable_label(state.settings.theme == choice, name)
+                .clicked()
+                && state.settings.theme != choice
+            {
+                state.set_theme(choice);
+            }
+        }
+    });
     ui.add_space(16.0);
 
     ui.label(RichText::new("PresentMon path").strong());

@@ -8,21 +8,26 @@ fn h() -> Harness<'static, SpeedImproverApp> {
 }
 
 #[test]
-fn shows_profile_health_and_tier() {
+fn shows_summary_tiles() {
     let h = h();
-    for l in [
-        "System Profile",
+    for label in [
         "LAPTOP-STUDENT",
-        "Health 0/100",
-        "LOW TIER",
-        "7 high-impact issues found",
-        "Status: Scan complete",
+        "Health",
+        "0/100",
+        "7 high · 5 medium · 2 low",
+        "Bottleneck",
+        "Collecting data…",
+        "CPU",
+        "GPU",
+        "Performance issues",
+        "Low tier",
     ] {
-        h.get_by_label(l);
+        h.get_by_label(label);
     }
 }
+
 #[test]
-fn lists_fps_killers_and_opens_analyzer() {
+fn issue_opens_issues_page_expanded() {
     let mut h = h();
     h.get_by_label("Monitor running below its max refresh rate")
         .click();
@@ -33,19 +38,28 @@ fn lists_fps_killers_and_opens_analyzer() {
         Some("display.refresh_below_max")
     );
 }
+
 #[test]
-fn view_all_opens_drivers() {
+fn drivers_summary_links_to_drivers() {
     let mut h = h();
     h.get_by_label("Checking for driver updates…");
-    h.get_by_label("View All").click();
+    h.get_by_label("View drivers").click();
     h.run();
     assert_eq!(h.state().state.page, Page::Drivers);
 }
+
 #[test]
-fn favorites_and_add_tile() {
+fn favorites_and_manage_link() {
     let mut h = h();
     h.get_by_label("Counter-Strike 2");
-    h.get_by_label("Add game").click();
+    h.get_by_label("Manage").click();
     h.run();
     assert_eq!(h.state().state.page, Page::Games);
+}
+
+#[test]
+fn restart_banner_on_overview() {
+    let mut st = testing::state_with(fixtures::healthy_desktop(), vec![]);
+    st.reboot_required = true;
+    harness(st).get_by_label("Restart your PC to finish installing drivers.");
 }

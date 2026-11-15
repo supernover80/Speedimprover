@@ -9,7 +9,7 @@ use si_core::drivers::{DriverRow, DriverStatus};
 use si_probe::catalog::CatalogSource;
 
 use crate::state::AppState;
-use crate::theme::{GAP, Palette};
+use crate::theme::{GAP, Palette, heading};
 use crate::widgets::card::{banner, card};
 use crate::widgets::format::driver_status_label;
 use crate::widgets::pill::{PillKind, pill};
@@ -73,7 +73,7 @@ pub fn install_dialog(ctx: &egui::Context, state: &mut AppState) {
     let mut cancelled = false;
     let response = Modal::new(egui::Id::new("install-confirm")).show(ctx, |ui| {
         ui.set_max_width(420.0);
-        ui.label(RichText::new("Install driver updates?").size(18.0).strong());
+        ui.label(heading(ui, "Install driver updates?", 18.0));
         ui.add_space(8.0);
         ui.label(format!(
             "SpeedImprover will create a System Restore point, then download and install {} update(s) from Windows Update.",
@@ -102,7 +102,7 @@ pub fn install_dialog(ctx: &egui::Context, state: &mut AppState) {
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     let p = state.palette;
     ui.horizontal(|ui| {
-        ui.label(RichText::new("Driver updates").size(22.0).strong());
+        ui.label(heading(ui, "Driver updates", 22.0));
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             if state.drivers_installing {
                 ui.label(

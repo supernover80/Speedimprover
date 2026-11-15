@@ -12,7 +12,7 @@ use si_core::games::recommend::{Goal, Reason, recommend};
 use si_core::model::{InstalledGame, Store};
 
 use crate::state::{AppState, UiEffect};
-use crate::theme::{GAP, Palette};
+use crate::theme::{GAP, Palette, heading};
 use crate::widgets::card::card;
 use crate::widgets::format::format_mb;
 use crate::widgets::pill::status_dot;
@@ -57,10 +57,9 @@ fn store_name(s: Store) -> &'static str {
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     let p = state.palette;
     let hardware = state.hardware.unwrap_or_default();
+    ui.label(heading(ui, "Game settings", 22.0));
     ui.label(
-        RichText::new(format!("Your PC: {} tier", hardware.overall.label()))
-            .size(22.0)
-            .strong(),
+        RichText::new(format!("Your PC: {} tier", hardware.overall.label())).color(p.text_muted),
     );
     ui.add_space(GAP);
 

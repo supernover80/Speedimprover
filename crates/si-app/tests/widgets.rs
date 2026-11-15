@@ -2,7 +2,7 @@ mod common;
 use common::*;
 use si_app::{
     theme::Palette,
-    widgets::{card::*, donut::*, format::*},
+    widgets::{card::*, format::*},
 };
 
 #[test]
@@ -42,15 +42,6 @@ fn card_action_is_clickable() {
     h.get_by_label("View All").click();
     h.run();
     assert!(*h.state());
-}
-#[test]
-fn donut_shows_value_or_dash() {
-    let h = Harness::new_ui(|ui| {
-        donut(ui, &Palette::dark(), Some(73.4), "CPU", 96.0);
-        donut(ui, &Palette::dark(), None, "GPU", 96.0);
-    });
-    h.get_by_label("73%");
-    h.get_by_label("—");
 }
 #[test]
 fn toasts_expire_after_four_seconds() {

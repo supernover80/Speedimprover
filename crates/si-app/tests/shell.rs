@@ -100,3 +100,44 @@ fn worker_scans_and_samples_with_fixture_probe() {
     assert!(done && sample && drivers);
     w.tx.send(WorkerCommand::Shutdown).unwrap();
 }
+
+#[test]
+fn theme_follows_system_by_default() {
+    use si_app::theme::{Palette, ThemeChoice};
+    assert_eq!(Settings::default().theme, ThemeChoice::System);
+    assert_eq!(
+        Palette::resolve(ThemeChoice::System, false),
+        Palette::light()
+    );
+    assert_eq!(Palette::resolve(ThemeChoice::System, true), Palette::dark());
+    assert_eq!(Palette::resolve(ThemeChoice::Light, true), Palette::light());
+}
+
+#[test]
+fn settings_theme_choice_is_saved() {
+    let mut st = testing::state_with(fixtures::healthy_desktop(), vec![]);
+    st.page = Page::Settings;
+    let mut h = harness(st);
+    h.get_by_label("Light").click();
+    h.run();
+    assert_eq!(
+        h.state().state.settings.theme,
+        si_app::theme::ThemeChoice::Light
+    );
+    assert!(h.state().state.effects.contains(&UiEffect::SaveSettings));
+}
+
+#[test]
+fn sidebar_shows_page_names() {
+    let h = harness(testing::state_with(fixtures::healthy_desktop(), vec![]));
+    for title in [
+        "Overview",
+        "Issues",
+        "Performance",
+        "Drivers",
+        "Games",
+        "Settings",
+    ] {
+        h.get_by_label(title);
+    }
+}

@@ -68,7 +68,7 @@ impl AppState {
     pub fn new(settings: Settings) -> Self {
         Self {
             page: Page::default(),
-            palette: Palette::for_choice(settings.theme),
+            palette: Palette::resolve(settings.theme, true),
             settings,
             scan: None,
             scan_step: None,
@@ -231,7 +231,7 @@ impl AppState {
 
     pub fn set_theme(&mut self, t: ThemeChoice) {
         self.settings.theme = t;
-        self.palette = Palette::for_choice(t);
+        self.palette = Palette::resolve(t, true);
         self.effects.push(UiEffect::SaveSettings);
     }
 }

@@ -12,6 +12,8 @@ use crate::widgets::toasts::Toasts;
 use crate::worker::{WorkerCommand, WorkerConfig, WorkerEvent, WorkerHandle, spawn_worker};
 use crate::{nav, pages};
 
+const SIDEBAR_WIDTH: f32 = 210.0;
+
 pub struct SpeedImproverApp {
     pub state: AppState,
     worker: Option<WorkerHandle>,
@@ -81,6 +83,8 @@ impl SpeedImproverApp {
             theme::install_fonts(&ctx);
             self.fonts_installed = true;
         }
+        let system_dark = ctx.system_theme().is_none_or(|t| t == egui::Theme::Dark);
+        self.state.palette = Palette::resolve(self.state.settings.theme, system_dark);
         if self.styled_with != Some(self.state.palette) {
             theme::apply(&ctx, &self.state.palette);
             self.styled_with = Some(self.state.palette);
@@ -89,13 +93,13 @@ impl SpeedImproverApp {
         let palette = self.state.palette;
 
         Panel::left("sidebar")
-            .exact_size(72.0)
+            .exact_size(SIDEBAR_WIDTH)
             .resizable(false)
             .show_separator_line(false)
-            .frame(Frame::new().fill(palette.card))
+            .frame(Frame::new().fill(palette.sidebar))
             .show(ui, |ui| nav::sidebar(ui, &mut self.state));
         CentralPanel::default()
-            .frame(Frame::new().fill(palette.bg).inner_margin(Margin::same(20)))
+            .frame(Frame::new().fill(palette.bg).inner_margin(Margin::same(24)))
             .show(ui, |ui| pages::show(ui, &mut self.state));
         pages::drivers::install_dialog(&ctx, &mut self.state);
         self.state.toasts.show(&ctx, &palette, self.state.now);

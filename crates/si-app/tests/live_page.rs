@@ -19,8 +19,11 @@ fn gpu_bound_state() -> AppState {
     st
 }
 #[test]
-fn shows_verdict() {
-    harness(gpu_bound_state()).get_by_label(Bottleneck::GpuBound.explanation());
+fn shows_bottleneck_analysis() {
+    let h = harness(gpu_bound_state());
+    h.get_by_label("Bottleneck analysis");
+    h.get_by_label("The GPU is the bottleneck");
+    h.get_by_label("Estimated from 10 seconds of system load");
 }
 #[test]
 fn prompts_for_presentmon() {
@@ -59,4 +62,34 @@ fn default_target_skips_dwm() {
     };
     assert_eq!(default_fps_target(&s).as_deref(), Some("cs2.exe"));
     assert_eq!(default_fps_target(&LiveSample::default()), None);
+}
+fn with_temps(cpu_exact: bool) -> AppState {
+    let mut st = gpu_bound_state();
+    st.live.push(LiveSample {
+        t_ms: 10_000,
+        gpu_pct: Some(99.0),
+        cpu_max_core_pct: 60.0,
+        ram_total_mb: 32768,
+        ram_used_mb: 9000,
+        cpu_temp_c: Some(71.0),
+        cpu_temp_exact: cpu_exact,
+        gpu_temp_c: Some(64.0),
+        ..Default::default()
+    });
+    st
+}
+#[test]
+fn shows_temperatures_with_hint_when_approximate() {
+    let h = harness(with_temps(false));
+    h.get_by_label("Temperatures");
+    // In the temperatures card and in the bottleneck evidence.
+    assert_eq!(h.query_all_by_label("71 °C (approx.)").count(), 2);
+    assert_eq!(h.query_all_by_label("64 °C").count(), 2);
+    h.get_by_label(si_app::pages::live::LHM_HINT);
+}
+#[test]
+fn exact_cpu_temperature_has_no_hint() {
+    let h = harness(with_temps(true));
+    assert_eq!(h.query_all_by_label("71 °C").count(), 2);
+    assert!(h.query_by_label(si_app::pages::live::LHM_HINT).is_none());
 }

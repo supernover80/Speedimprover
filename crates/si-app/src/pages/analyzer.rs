@@ -5,7 +5,7 @@ use si_core::findings::{Category, Finding, Fix, Severity};
 
 use crate::nav::Page;
 use crate::state::AppState;
-use crate::theme::{CARD_RADIUS, GAP};
+use crate::theme::{CARD_RADIUS, GAP, heading};
 use crate::widgets::format::severity_color;
 use crate::widgets::pill::{PillKind, pill, status_dot};
 
@@ -32,13 +32,17 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     let p = state.palette;
     ui.horizontal(|ui| {
         ui.vertical(|ui| {
-            ui.label(RichText::new("What's costing you FPS").size(22.0).strong());
+            ui.label(heading(ui, "Performance issues", 22.0));
             ui.label(
-                RichText::new(format!("Health score {}/100", state.health)).color(p.text_muted),
+                RichText::new(format!(
+                    "Health score {}/100 · settings and hardware that cost frame rate",
+                    state.health
+                ))
+                .color(p.text_muted),
             );
         });
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            if pill(ui, &p, "Rescan", PillKind::Primary).clicked() {
+            if pill(ui, &p, "Rescan", PillKind::Neutral).clicked() {
                 state.request_scan();
             }
         });
